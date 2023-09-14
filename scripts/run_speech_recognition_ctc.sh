@@ -1,5 +1,9 @@
 #! /usr/bin/env bash 
 
+export DATA_DIR=/home/data/'한국어(KO)_일본어(JP)'/asr_split
+export AUDIO_DIR=/home/data/
+
+
 LOCAL_RANK=0,1,2,3 \
 CUDA_VISIBLE_DEVICES=0,1,2,3 \
 python3 -m torch.distributed.launch --nproc_per_node 4 \
