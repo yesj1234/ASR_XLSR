@@ -122,20 +122,76 @@ export AUDIO_DIR=/home/ubuntu/output
 ```
 
 5. run the training shell script
-
 ```bash
 bash run_speech_recognition_ctc.bash
 ```
-
-# Multi gpu 환경에서 trainer api 사용하기.
-
-1. bash로 python script 실행 하기 혹은 그냥 python 명령어 실행.
-
+## Dockerizing
+### Prerequisites
+Docker and NVIDIA driver MUST be installed in your host OS. 
+1. Add Docker's official GPG key
 ```bash
-LOCAL_RANK=0,1,2,3 \
-CUDA_VISIBLE_DEVICES=0,1,2,3 \
-python3 -m torch.distributed.launch --nproc_per_node 4 \
---use-env run_training.py \
-run_training_gpu_asr.json \
---chars_to_ignore [\,\?\.\!\-\;\:\"\“\‘\”\ ‘、。．！，・―─~｢｣『』〆｡\\\\※\[\]\{\}「」〇？…]
+sudo apt-get update
+sudo apt-get install ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
 ```
+2. Add the repository to Apt sources:
+```bash
+echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+```
+3. verify the Docker Engine installation is succesful by running the hello-world image
+```bash
+sudo docker run hello-world
+```
+4. install docker nvidia(NVIDIA driver MUST be installed in the host OS)
+```bash
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+   && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
+   && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+```
+5. NVIDIA-docker install
+```bash
+sudo apt-get update
+sudo apt-get install -y nvidia-docker2
+```
+6. rerun docker service
+```bash
+sudo systemctl restart docker
+```
+7. test if nvidia docker is successfully installed
+```bash
+sudo docker run --rm --gpus all ubuntu:20.04 nvidia-smi
+```
+## Simply run the training scripts in 4 steps with docker. 
+1. build 
+```bash
+sudo docker build -t xlsr .
+```
+2. run
+```bash
+bash run_container.sh # sudo docker run -it --ipc host --gpus all -v /home/ubuntu/data:/home/data -v /home/ubuntu/ASR_XLSR/scripts:/home/scripts xlsr bash
+``` 
+3. preprocess(inside the container)
+```bash
+python 1.prepare_from_json_asr.py --asr_dest_folder /home/data/한국어(KO)_일본어(JP) --jsons /home/data/한국어(KO)_일본어(JP) # python 1.prepare_from_json_asr.py --asr_dest_folder /home/data/SourceLang(lang_code)_TargetLang(lang_code)
+python refine_data.py --tsv_splits_dir /home/data/한국어(KO)_일본어(JP)/asr_split # python refine_data.py --tsv_splits_dir /home/data/SourceLang(lang_code)_TargetLang(lang_code)/asr_split
+```
+4. change DATA_DIR, AUDIO_DIR in run_speech_recognition_ctc.sh and run training
+```bash
+export DATA_DIR=/home/data/'한국어(KO)_일본어(JP)'/asr_split # Change this to the actual path
+export AUDIO_DIR=/home/data/
+```
+```bash
+bash run_speech_recognition_ctc.sh
+```
+# ENVIRONMENT
+- OS: Canonical Ubuntu 20.04 
+- CPU: 64 OCPU(Oracle CPU)
+- Memory: 16GB(per GPU)
+- Storage: 7.68TB NVMe SSD Storage(x2)
+- GPU: NVIDIA A10(x4)
