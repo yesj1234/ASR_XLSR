@@ -1,7 +1,7 @@
 #! /usr/bin/env bash 
 
-export DATA_DIR=/home/data/'한국어(KO)_일본어(JP)'/asr_split
-export AUDIO_DIR=/home/data/
+export DATA_DIR=/home/ubuntu/'영어(EN)_한국어(KO)'/asr_split
+export AUDIO_DIR=/home/ubuntu/
 
 
 LOCAL_RANK=0,1,2,3 \
