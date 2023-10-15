@@ -20,7 +20,7 @@
     "unk_token": "[UNK]",
     "pad_token": "[PAD]",
     "word_delimiter_token": "|",
-    "output_dir": "./ko-xlsr",
+    "output_dir": "./zh-xlsr",
     "do_train": true,
     "do_eval": true,
     "do_predict": true,
