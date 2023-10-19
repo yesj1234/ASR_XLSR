@@ -5,8 +5,8 @@ import argparse
 bracket_pair_pattern = re.compile("\([^\/]+\)\/\([^\/\(\)]+\)") # (이거)/(요거) 모양 패턴
 bracket_pattern = re.compile("[\(\)]") # (문자) 모양 패턴
 bracket_ex_pattern = re.compile("\/\([^\/]+\)") # 뭣뭣/(무엇무엇) 모양 패턴
-# special_pattern = re.compile("[a-z,?!%'~:/+\-*().·@]") # 한글 이외의 특수 기호들 [a-z,?!%'~:/+\-*().·@] 패턴 
-special_pattern = re.compile("[,?!%'~:/+\-*().·@]") # 영어 이외의 특수 기호들 [a-z,?!%'~:/+\-*().·@] 패턴 
+special_pattern = re.compile("[a-z,?!%'~:/+\-*().·@]") # 한글 이외의 특수 기호들 [a-z,?!%'~:/+\-*().·@] 패턴 
+# special_pattern = re.compile("[,?!%'~:/+\-*().·@]") # 영어 이외의 특수 기호들 [a-z,?!%'~:/+\-*().·@] 패턴 
 def main(args):
     for root, _dir, files in os.walk(args.tsv_splits_dir):
         for file in files:
