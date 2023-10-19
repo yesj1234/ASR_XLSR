@@ -42,6 +42,8 @@
     "group_by_length": true,
     "fp16": true,
     "max_duration_in_seconds": 10,
+    "load_best_model_at_end": true,
+    "metric_for_best_model": "eval_cer",
     "chars_to_ignore": [
         ",",
         "?",

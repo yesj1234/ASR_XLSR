@@ -30,6 +30,7 @@ pip install sox
 sudo apt update 
 sudo apt install -y ffmpeg 
 pip install -U accelerate 
+pip install wandb
 
 export DATA_DIR=$(pwd)/contents/asr_split # sample_speech.py 에서 사용할 데이터 디렉토리 경로 
 export AUDIO_DIR=$(pwd)/contents # sample_speech.py 에서 사용할 오디오 디렉토리 경로
