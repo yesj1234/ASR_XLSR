@@ -3,11 +3,11 @@
     "overwrite_output_dir": true,
     "freeze_feature_encoder": true,
     "attention_dropout": 0.1,
-    "hidden_dropout": 0.05,
-    "feat_proj_dropout": 0.05,
-    "mask_time_prob": 0.05,
+    "hidden_dropout": 0.1,
+    "feat_proj_dropout": 0.1,
+    "mask_time_prob": 0.1,
     "mask_feature_length": 10,
-    "layerdrop": 0.05,
+    "layerdrop": 0.1,
     "ctc_loss_reduction": "mean",
     "dataset_name": "./sample_speech.py",
     "train_split_name": "train",
@@ -21,7 +21,7 @@
     "unk_token": "[UNK]",
     "pad_token": "[PAD]",
     "word_delimiter_token": "|",
-    "output_dir": "./ko-xlsr",
+    "output_dir": "./ko-xlsr2",
     "do_train": true,
     "do_eval": true,
     "do_predict": true,
@@ -45,7 +45,7 @@
     "fp16": true,
     "max_duration_in_seconds": 10,
     "report_to": "wandb",
-    "run_name": "xlsr_koen_exp",
+    "run_name": "xlsr_koen_exp3",
     "chars_to_ignore": [
         ",",
         "?",
@@ -85,6 +85,9 @@
         "x",
         "y",
         "z",
-        "@"
+        "@",
+        "℃",
+        "&",
+        "\""
     ]
   }

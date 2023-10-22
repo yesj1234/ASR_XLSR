@@ -483,6 +483,13 @@ def main():
         if data_args.max_eval_samples is not None:
             raw_datasets["eval"] = raw_datasets["eval"].select(range(data_args.max_eval_samples))
 
+    if training_args.do_predict:
+        raw_datasets["test"] = load_dataset(
+            data_args.dataset_name,
+            data_args.dataset_config_name,
+            split=data_args.test_split_name,
+            token=data_args.token
+        )
     # 2. We remove some special characters from the datasets
     # that make training complicated and do not help in transcribing the speech
     # E.g. characters, such as `,` and `.` do not really have an acoustic characteristic
@@ -779,7 +786,21 @@ def main():
 
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
-
+    if training_args.do_predict:
+        logger.info("*** Predict ***")
+        predict_results = trainer.predict(
+            raw_datasets["test"],
+            metric_key_prefix="predict"             
+        )
+        metrics = predict_results.metrics
+        max_predict_samples = (
+            data_args.max_predict_samples if data_args.max_predict_samples is not None else len(raw_datasets["test"])
+        )
+        metrics["predict_samples"] = min(max_predict_samples, len(raw_datasets["test"]))
+        trainer.log_metrics("predict", metrics)
+        trainer.save_metrics("predict", metrics)
+        
+        
     # Write model card and (optionally) push to hub
     config_name = data_args.dataset_config_name if data_args.dataset_config_name is not None else "na"
     kwargs = {
