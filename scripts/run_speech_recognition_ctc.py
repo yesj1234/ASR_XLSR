@@ -47,6 +47,7 @@ from transformers import (
     Trainer,
     TrainingArguments,
     set_seed,
+    EarlyStoppingCallback
 )
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version, send_example_telemetry
@@ -745,6 +746,7 @@ def main():
         train_dataset=vectorized_datasets["train"] if training_args.do_train else None,
         eval_dataset=vectorized_datasets["eval"] if training_args.do_eval else None,
         tokenizer=processor,
+        callbacks= [EarlyStoppingCallback(early_stopping_patience = 5)]
     )
 
     # 8. Finally, we can start training
@@ -789,14 +791,14 @@ def main():
     if training_args.do_predict:
         logger.info("*** Predict ***")
         predict_results = trainer.predict(
-            raw_datasets["test"],
+            vectorized_datasets["test"],
             metric_key_prefix="predict"             
         )
         metrics = predict_results.metrics
         max_predict_samples = (
-            data_args.max_predict_samples if data_args.max_predict_samples is not None else len(raw_datasets["test"])
+            data_args.max_predict_samples if data_args.max_predict_samples is not None else len(vectorized_datasets["test"])
         )
-        metrics["predict_samples"] = min(max_predict_samples, len(raw_datasets["test"]))
+        metrics["predict_samples"] = min(max_predict_samples, len(vectorized_datasets["test"]))
         trainer.log_metrics("predict", metrics)
         trainer.save_metrics("predict", metrics)
         
