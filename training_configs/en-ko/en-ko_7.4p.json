@@ -2,7 +2,7 @@
     "model_name_or_path": "facebook/wav2vec2-large-xlsr-53",
     "overwrite_output_dir": true,
     "freeze_feature_encoder": true,
-    "attention_dropout": 0.1,
+    "attention_dropout": 0.05,
     "hidden_dropout": 0.05,
     "feat_proj_dropout": 0.05,
     "mask_time_prob": 0.05,
@@ -44,6 +44,8 @@
     "group_by_length": true,
     "max_duration_in_seconds": 10,
     "min_duration_in_seconds": 2,
+    "report_to": "wandb",
+    "run_name": "xlsr_enko_exp1",
     "chars_to_ignore": [
         ",",
         "?",
@@ -81,4 +83,4 @@
         "수",
         "실"
     ]
-}
+  }

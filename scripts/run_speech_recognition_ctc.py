@@ -363,12 +363,18 @@ def create_vocabulary_from_data(
         keep_in_memory=True,
         remove_columns=datasets["train"].column_names,
     )
-
+    # logger.info(vocabs.values())
     # take union of all unique characters in each dataset
-    vocab_set = functools.reduce(
-        lambda vocab_1, vocab_2: set(vocab_1["vocab"][0]) | set(vocab_2["vocab"][0]), vocabs.values()
-    )
-
+    # def my_lambda(x, y):
+    #     return set(x["vocab"][0]) | set(y["vocab"][0])
+    
+    # vocab_set = functools.reduce(
+    #     my_lambda, vocabs.values()
+    # )
+    vocab_set = ()
+    for vocab in vocabs.values():
+        vocab_set = set(vocab_set) | set(vocab["vocab"][0])
+    
     vocab_dict = {v: k for k, v in enumerate(sorted(vocab_set))}
 
     # replace white space with delimiter token
@@ -483,14 +489,15 @@ def main():
 
         if data_args.max_eval_samples is not None:
             raw_datasets["eval"] = raw_datasets["eval"].select(range(data_args.max_eval_samples))
-
+            
     if training_args.do_predict:
         raw_datasets["test"] = load_dataset(
             data_args.dataset_name,
             data_args.dataset_config_name,
-            split=data_args.test_split_name,
-            token=data_args.token
+            split="test",
+            token=data_args.token,
         )
+    
     # 2. We remove some special characters from the datasets
     # that make training complicated and do not help in transcribing the speech
     # E.g. characters, such as `,` and `.` do not really have an acoustic characteristic
@@ -746,7 +753,7 @@ def main():
         train_dataset=vectorized_datasets["train"] if training_args.do_train else None,
         eval_dataset=vectorized_datasets["eval"] if training_args.do_eval else None,
         tokenizer=processor,
-        callbacks= [EarlyStoppingCallback(early_stopping_patience = 5)]
+        callbacks= [EarlyStoppingCallback(early_stopping_patience = 5 )]
     )
 
     # 8. Finally, we can start training
@@ -790,6 +797,7 @@ def main():
         trainer.save_metrics("eval", metrics)
     if training_args.do_predict:
         logger.info("*** Predict ***")
+        
         predict_results = trainer.predict(
             vectorized_datasets["test"],
             metric_key_prefix="predict"             
