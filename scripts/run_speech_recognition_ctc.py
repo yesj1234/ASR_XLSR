@@ -803,10 +803,7 @@ def main():
             metric_key_prefix="predict"             
         )
         metrics = predict_results.metrics
-        max_predict_samples = (
-            data_args.max_predict_samples if data_args.max_predict_samples is not None else len(vectorized_datasets["test"])
-        )
-        metrics["predict_samples"] = min(max_predict_samples, len(vectorized_datasets["test"]))
+        metrics["predict_samples"] = len(vectorized_datasets["test"])
         trainer.log_metrics("predict", metrics)
         trainer.save_metrics("predict", metrics)
         
