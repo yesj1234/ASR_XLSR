@@ -1,2 +1,2 @@
-def refine_ko(transcription):
+def refine_zh(transcription):
     pass
