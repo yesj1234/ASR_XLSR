@@ -8,7 +8,7 @@ slash = chr(65295) # ／
 PARENTHESIS_PAIR_WITH_SLASH = re.compile("\([^\/]+\)\/\([^\/\(\)]+\)") # (이거)/(요거) 모양 패턴
 PARENTHESIS = re.compile("[\(\)]") # (문자) 모양 패턴에서 ()를 제거하기 위함.
 PARENTHESIS_WITH_SLASH = re.compile("\/\([^\/]+\)") # 뭣뭣/(무엇무엇) 모양 패턴
-SPECIAL_CHARS_KO = re.compile("[a-z,?!%'~:/+\-*().·@]") # 한글 이외의 특수 기호들 [a-z,?!%'~:/+\-*().·@] 패턴 
+SPECIAL_CHARS_KO = re.compile("[a-zA-Z,?!%'~:/+\-*().·@]") # 한글 이외의 특수 기호들 [a-z,?!%'~:/+\-*().·@] 패턴 
 
 #######중국어######## 
 PARENTHESIS_PAIR_ZH = re.compile(f"{open_bracket}.+?{close_bracket}{open_bracket}.+?{close_bracket}") # （这个）（这个） 모양의 패턴 , 嗯，我好像有点(摄像机)(camera)恐惧症。 모양의 패턴들로부터 앞의 것 만 선택하기 위함. 
@@ -25,6 +25,14 @@ DOUBLE_BRACKET_ZH = re.compile(f"\《.+?\》") # 《QQ炫舞》这团团玩的�
 PARENTHESIS_PAIR_WITH_SLASH_JA = re.compile(f"[\({open_bracket}][^\/{slash}]+?[\){close_bracket}][\/{slash}][\({open_bracket}][^\/{slash}]+?[\){close_bracket}]") # (あそこや)/(あそこだ)
 PARENTHESIS_JA_FIRST_PART = re.compile(f"^[\({open_bracket}].+?[\){close_bracket}]")
 PARENTHESIS_JA = re.compile(f"[{open_bracket}{close_bracket}\(\)]")
+
+# multi_speaker_bracket_open = ord(12308) # 〔
+# multi_speaker_bracket_close = ord(12309) # 〕
+MULTI_SPEAKER_BRACKET = re.compile(f"[\〔\〕]")
+
+PARENTHESIS_WITH_SLASH_JA = re.compile(f"[\({open_bracket}].+?[\/{slash}].+?[\){close_bracket}]") # （できるんすよ／できるですよ）
+
+
 
 
 ####### 영어 #######
