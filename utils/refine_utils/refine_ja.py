@@ -1,36 +1,26 @@
 import re
 from .patterns import (
-    PARENTHESIS,
-    PARENTHESIS_PAIR_WITH_SLASH_ZH,
-    PARENTHESIS_ZH
+    PARENTHESIS_PAIR_WITH_SLASH_JA,
+    PARENTHESIS_JA_FIRST_PART,
+    PARENTHESIS_JA
 )
 
 def refine_ja(line):
-    BRACKET_PAIR = re.compile("\([^\/]+\)\/\([^\/\(\)]+\)") # 1. (이거)/(요거) 모양 패턴
-    matched = re.findall(BRACKET_PAIR, line) # (애)/(아)
+    matched = re.findall(PARENTHESIS_PAIR_WITH_SLASH_JA, line) # （やろ）/（だろう） -> やろ 
     if matched:
         for item in matched:
             try:
-                first_part = item.split("/")[0] # (애)
-                first_part = re.sub(PARENTHESIS, "", first_part) # (애) -> 애
-                line = line.replace(item, first_part) # (애)/(아) -> 애 
+                item = str(item)
+                print(f"item: {item}")
+                first_part = re.match(PARENTHESIS_JA_FIRST_PART, item).group()
+                print(f"first part: {first_part}")
+                first_part = re.sub(PARENTHESIS_JA, "", first_part) 
+                print(f"first_part: {first_part}")
+                line = line.replace(item, first_part)  
+                print(f"line: {line}")
             except Exception as e:
                 print(e)
                 pass
-    matched = re.findall(PARENTHESIS_PAIR_WITH_SLASH_ZH, line) # （这个）/（这个）
-    if matched:
-        for item in matched:
-            print(item)
-            try:
-                first_part = item.split("/")[0] # （这个）
-                print(first_part)
-                first_part = re.sub(PARENTHESIS_ZH, "", first_part) # （这个） -> 这个
-                print(first_part)
-                line = line.replace(item, first_part) # （这个）/（这个） -> 这个
-                print(line)
-            except Exception as e:
-                print(e)
-                pass
-            return line
+        return line
     else:
         return line

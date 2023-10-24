@@ -71,7 +71,7 @@ def main(args):
     os.makedirs(os.path.join(args.asr_dest_folder, "asr_split"), exist_ok=True)
     path_and_transcription_sets = []
     # sound_file_paths, sound_file_transcriptions = [], []
-    for root, dir, files in os.walk(args.jsons):
+    for root, dirs, files in os.walk(args.jsons):
         if files:
             print(f"json files from {os.path.join(root)}")
             for file in files:
