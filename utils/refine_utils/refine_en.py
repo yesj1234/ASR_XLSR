@@ -6,14 +6,14 @@ from .patterns import (
     PARENTHESIS
 )
 
-def refine_en(transcription):
-    matched = re.findall(MISTAKE_PARENTHESIS, transcription)
+def refine_en(line):
+    matched = re.findall(MISTAKE_PARENTHESIS, line)
     if matched:
         for item in matched:
-            transcription = transcription.replace(item, "")
+            line = line.replace(item, "")
     else:
         pass
-    matched = re.findall(PARENTHESIS_PAIR_WITH_SLASH)
+    matched = re.findall(PARENTHESIS_PAIR_WITH_SLASH, line)
     if matched:
         for item in matched:
             try:
@@ -25,10 +25,10 @@ def refine_en(transcription):
                 pass
     else:
         pass        
-    matched = re.findall(SPECIAL_CHARS_EN, transcription) # 위의 사항외의 특수기호들은 제거. 
+    matched = re.findall(SPECIAL_CHARS_EN, line) # 위의 사항외의 특수기호들은 제거. 
     if matched:
         for item in matched:
-            transcription = transcription.replace(item, "")
-        return transcription
+            line = line.replace(item, "")
+        return line
     else:
-        return transcription
+        return line
