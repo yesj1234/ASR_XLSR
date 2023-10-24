@@ -1,12 +1,20 @@
 import os 
 import re 
 import argparse 
+from refine_utils import (
+    refine_ko,
+    refine_ja,
+    refine_zh,
+    refine_en
+)
 
-bracket_pair_pattern = re.compile("\([^\/]+\)\/\([^\/\(\)]+\)") # (이거)/(요거) 모양 패턴
-bracket_pattern = re.compile("[\(\)]") # (문자) 모양 패턴
-bracket_ex_pattern = re.compile("\/\([^\/]+\)") # 뭣뭣/(무엇무엇) 모양 패턴
-special_pattern = re.compile("[a-z,?!%'~:/+\-*().·@]") # 한글 이외의 특수 기호들 [a-z,?!%'~:/+\-*().·@] 패턴 
-# special_pattern = re.compile("[,?!%'~:/+\-*().·@]") # 영어 이외의 특수 기호들 [a-z,?!%'~:/+\-*().·@] 패턴 
+langs_mapper = {
+    "ko": refine_ko,
+    "en": refine_en,
+    "ja": refine_ja,
+    "zh": refine_zh
+}
+
 def main(args):
     for root, _dir, files in os.walk(args.tsv_splits_dir):
         for file in files:
@@ -18,38 +26,14 @@ def main(args):
                     # ()/() 모양 패턴 제거 
                     for line in lines: 
                         _path, target_text = line.split(" :: ")
-                        matches = re.findall(bracket_pair_pattern, target_text)
-                        if matches:
-                            for item in matches:
-                                first_part = item.split("/")[0]
-                                first_part = re.sub(bracket_pattern, "", first_part)
-                                line = line.replace(item, first_part)
-                            new_lines.append(line)
-                        else:
-                            new_lines.append(line)
-                    # /() 모양 제거
-                    for i, new_line in enumerate(new_lines):
-                        _path, target_text = new_line.split(" :: ")
-                        matches = re.findall(bracket_ex_pattern, target_text)
-                        if matches:
-                            for item in matches:
-                                first_part = item.split("/")[0]
-                                new_line = new_line.replace(item, first_part)
-                            new_lines[i] = new_line
-                        else:
-                            pass
-                    
-                    # special characters 제거
-                    for i, new_line in enumerate(new_lines):
-                        _path, target_text = new_line.split(" :: ")
-                        target_text = re.sub(special_pattern, "", target_text)
-                        new_lines[i] = f"{_path} :: {target_text}"
-                    
+                        target_text = langs_mapper[args.lang](target_text)
+                        new_lines.append(f"{_path} :: {target_text}")
                     for l in new_lines:
                         refined_file.write(l)    
                         
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--tsv_splits_dir", help="asr_splits 디렉토리 경로")
+    parser.add_argument("--lang", help="ko, en, zh, ja")
     args = parser.parse_args()
     main(args)

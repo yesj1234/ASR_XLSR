@@ -15,7 +15,8 @@
   "audio_column_name": "audio",
   "text_column_name": "target_text",
   "eval_metrics": [
-    "cer"
+    "cer",
+    "wer"
   ],
   "unk_token": "[UNK]",
   "pad_token": "[PAD]",
