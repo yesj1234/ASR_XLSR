@@ -31,8 +31,7 @@ PARENTHESIS_JA = re.compile(f"[{open_bracket}{close_bracket}\(\)]")
 MULTI_SPEAKER_BRACKET = re.compile(f"[\〔\〕]")
 
 PARENTHESIS_WITH_SLASH_JA = re.compile(f"[\({open_bracket}].+?[\/{slash}].+?[\){close_bracket}]") # （できるんすよ／できるですよ）
-
-
+PARENTHESIS_PAIR_JA = re.compile(f"[\({open_bracket}].+?[\){close_bracket}][\({open_bracket}].+?[\){close_bracket}]")
 
 
 ####### 영어 #######
