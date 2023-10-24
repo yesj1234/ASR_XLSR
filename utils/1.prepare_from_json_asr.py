@@ -54,7 +54,11 @@ def get_neccesary_info(json_file):
         for key in CATEGORY:
             path = path.replace(CATEGORY[key], key)
         return path
-    json_data = json.load(json_file)
+    try:
+        json_data = json.load(json_file)
+    except Exception as e:
+        print(e)
+        print(json_file)
     path = json_data["fi_sound_filepath"].split("/")[-5:]
     path = '/'.join(path)
     path = _replace_path(path)
