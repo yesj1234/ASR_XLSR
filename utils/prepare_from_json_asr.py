@@ -30,6 +30,11 @@ import os
 import argparse
 import numpy as np
 from typing import Dict
+import logging
+logger = logging.getLogger("splitting_logger")
+logger.setLevel(logging.INFO)
+streamHandler = logging.StreamHandler()
+logger.addHandler(streamHandler)
 
 CATEGORY: Dict[str, str] = {
     "일상,소통_ca1": "일상,소통",
@@ -66,23 +71,55 @@ def get_neccesary_info(json_file):
     return path, transcription
 
 
+def get_pairs(dir_path, ratio = 1.0):
+    pairs = []
+    for root, dirs, files in os.walk(dir_path):
+        if dirs:
+            for dir in dirs:
+                logger.info(f"json files from {os.path.join(root, dir)}")
+                files = os.listdir(os.path.join(root, dir))
+                if files:
+                    for file in files:
+                        _, ext = os.path.splitext(file)
+                        if ext == ".json":
+                            with open(os.path.join(root, dir, file), "r", encoding="utf-8") as json_file:
+                                try:
+                                    path, transcription = get_neccesary_info(
+                                        json_file)
+                                    pairs.append((path, transcription))
+                                except Exception as e:
+                                    logger.warning(e)
+                                    logger.warning(file)
+    np.random.shuffle(pairs) # shuffle in-place and return none.
+    maximum_index = int(len(pairs) * ratio)
+    return pairs[:maximum_index] # return the given ratio. defaults to 100%.
+
+def split_data(pairs):
+    transcriptions = list(map(lambda x:x[0], pairs))
+    translations = list(map(lambda x:x[1], pairs))
+    transcription_train, transcription_validate, transcription_test = np.split(
+        transcriptions, [int(len(transcriptions)*0.8), int(len(transcriptions)*0.9)])
+    translation_train, translation_validate, translation_test = np.split(translations, [
+                                                                         int(len(translations)*0.8), int(len(translations)*0.9)])
+    assert len(transcription_train) == len(
+        translation_train), "train split 길이 안맞음."
+    assert len(transcription_test) == len(
+        translation_test), "test split 길이 안맞음."
+    assert len(transcription_validate) == len(
+        translation_validate), "validate split 길이 안맞음."
+    return transcription_train, transcription_validate, transcription_test, translation_train, translation_validate, translation_test
+
+
 def main(args):
     np.random.seed(42)
     os.makedirs(os.path.join(args.asr_dest_folder, "asr_split"), exist_ok=True)
+    categories_list = os.listdir(args.jsons) # ["게임_ca3", "교육_ca5", ...] , args.jsons = "/home/ubuntu/한국어_영어/'라벨링 데이터'"
+    categories_list = list(map(lambda x: os.path.join(args.jsons, x), categories_list))
     path_and_transcription_sets = []
-    # sound_file_paths, sound_file_transcriptions = [], []
-    for root, dirs, files in os.walk(args.jsons):
-        if files:
-            print(f"json files from {os.path.join(root)}")
-            for file in files:
-                _, ext = os.path.splitext(file)
-                if ext == ".json":
-                    with open(os.path.join(root, file), "r", encoding="utf-8") as json_file:
-                        path, transcription = get_neccesary_info(json_file)
-                        path_and_transcription_sets.append(
-                            (path, transcription))
-                        # sound_file_paths.append(path)
-                        # sound_file_transcriptions.append(transcription)
+    for category_path in categories_list:
+        pairs = get_pairs(category_path, ratio = args.ratio)
+        path_and_transcription_sets = [*path_and_transcription_sets, *pairs]   
+    
     np.random.shuffle(path_and_transcription_sets)
     sound_file_paths = list(map(lambda x: x[0], path_and_transcription_sets))
     sound_file_transcriptions = list(
@@ -119,5 +156,6 @@ if __name__ == "__main__":
                         help="folder that will contain all the data for asr model")
     parser.add_argument("--jsons", type=str, required=True,
                         help="folder path that has json files inside of it")
+    parser.add_argument("--ratio", type=float, help="ratio of the data to make splits defaults to 1", default = 1.0)
     args = parser.parse_args()
     main(args)
