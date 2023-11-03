@@ -42,19 +42,20 @@ class SampleSpeech(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding='utf-8') as f:
             data = f.read().strip()
             for id_, row in enumerate(data.split("\n")):
-                path, sentence = tuple(row.split(" :: "))
-                if os.path.exists(os.path.join(self.audio_dir, path)):
-                    with open(os.path.join(self.audio_dir, path), 'rb') as audio_file:
-                        audio_data = audio_file.read()
-                    audio = {
-                        "path": os.path.join(self.audio_dir, path),
-                        "bytes": audio_data,
-                        "sampling_rate": 16_000
-                    }
-                    
-                    yield id_, {
-                        "file": os.path.join(self.audio_dir, path),
-                        "audio": audio,
-                        "target_text": sentence,
-                    }
+                if row:
+                    path, sentence = tuple(row.split(" :: "))
+                    if os.path.exists(os.path.join(self.audio_dir, path)):
+                        with open(os.path.join(self.audio_dir, path), 'rb') as audio_file:
+                            audio_data = audio_file.read()
+                        audio = {
+                            "path": os.path.join(self.audio_dir, path),
+                            "bytes": audio_data,
+                            "sampling_rate": 16_000
+                        }
+                        
+                        yield id_, {
+                            "file": os.path.join(self.audio_dir, path),
+                            "audio": audio,
+                            "target_text": sentence,
+                        }
                 
