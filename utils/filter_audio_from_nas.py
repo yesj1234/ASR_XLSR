@@ -18,7 +18,7 @@ def main(args):
                         for row in progress_bar:
                             path, transcription = row[0].split(" :: ")
                             if os.path.exists(path):
-                                source = os.path.join(args.root)
+                                source = os.path.join(_root, file)
                                 destination = os.path.join(arg.destination, path)
                                 dst_folder = os.path.dirname(destination)
                                 if not os.path.exists(dst_folder):
@@ -28,6 +28,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_arguments("--tsv_files", help="directory path to the tsv files.")
-    parser.add_arguments("--destination", help="destination of the folder path.")
+    parser.add_arguments("--destination", help="root folder path of the destination.")
     args = parser.parse_args()
     main(args)
