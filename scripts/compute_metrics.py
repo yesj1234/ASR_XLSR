@@ -69,12 +69,25 @@ def main():
         
         
     predictions = list(map(lambda x: re.sub(CHARS_TO_IGNORE_REGEX, "", x), predictions))
-    prediction = list(map(lambda x: x.strip(), predictions))
-    references = list(map(lambda x: x.strip(), references))
+    
     
     with open("predictions.txt", "w+", encoding="utf-8") as f:
         for prediction, reference in zip(predictions, references):
             f.write(f"{prediction} :: {reference}\n")
+    
+    for i, pair in enumerate(zip(predictions, references)):
+        prediction, reference =pair
+        prediction = prediction.strip()
+        prediction = " ".join(list(prediction))
+        reference = reference.strip()
+        reference = " ".join(list(reference))         
+        if len(prediction) < 1 or len(reference) < 1:
+            prediction.pop(i)
+            reference.pop(i)
+        else:
+            logger.warning(f"Prediction or reference is empty")
+            logger.warning(f"prediction: {prediction}")
+            logger.warning(f"reference : {reference}")
     
     cer = evaluate.load("cer")
     wer = evaluate.load("wer")
