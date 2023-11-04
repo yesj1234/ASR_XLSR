@@ -82,8 +82,8 @@ def main():
         reference = reference.strip()
         reference = " ".join(list(reference))         
         if len(prediction) < 1 or len(reference) < 1:
-            prediction.pop(i)
-            reference.pop(i)
+            predictions.pop(i)
+            references.pop(i)
         else:
             logger.warning(f"Prediction or reference is empty")
             logger.warning(f"prediction: {prediction}")
