@@ -658,8 +658,14 @@ def main():
     def prepare_dataset(batch):
         # load audio
         sample = batch[audio_column_name]
-
-        inputs = feature_extractor(sample["array"], sampling_rate=sample["sampling_rate"])
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            try: 
+                inputs = feature_extractor(sample["array"], sampling_rate=sample["sampling_rate"])
+            except Warning as e:
+                print(e)
+                print(batch["audio"]["path"])
+                
         batch["input_values"] = inputs.input_values[0]
         batch["input_length"] = len(batch["input_values"])
 
@@ -752,8 +758,7 @@ def main():
         compute_metrics=compute_metrics,
         train_dataset=vectorized_datasets["train"] if training_args.do_train else None,
         eval_dataset=vectorized_datasets["eval"] if training_args.do_eval else None,
-        tokenizer=processor,
-        callbacks= [EarlyStoppingCallback(early_stopping_patience = 5 )]
+        tokenizer=processor
     )
 
     # 8. Finally, we can start training
