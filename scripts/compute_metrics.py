@@ -37,7 +37,7 @@ def speech_file_to_array_fn(batch):
     return batch
     
 def main():
-    raw_dataset = load_dataset("./test_loader.py", split="test")
+    raw_dataset = load_dataset("./sample_speech.py", split="test")
     raw_dataset = raw_dataset.map(remove_special_characters, num_proc = 8, desc="remove special chars")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
