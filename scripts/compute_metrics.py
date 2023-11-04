@@ -5,6 +5,7 @@ from tqdm import tqdm
 import logging 
 import sys
 import re 
+from time import time 
 
 from transformers import (
     Wav2Vec2ForCTC,
@@ -24,11 +25,13 @@ logging.basicConfig(
 )
 
 
-CHARS_TO_IGNORE_REGEX = re.compile("[+-。、「」【】〜〉…？?.,~!]")
+CHARS_TO_IGNORE_REGEX = {
+    "ko": re.compile("[.?!.,]"),
+    "ja": re.compile("[+-。、「」【】〜〉…？?.,~!]"),
+    "zh": re.compile("[。？，！.,?~]"),
+    "en": re.compile("[.,?!~]")
+}
 
-def remove_special_characters(batch):
-    batch["target_text"] = re.sub(CHARS_TO_IGNORE_REGEX, "", batch["target_text"])
-    return batch
 
 def speech_file_to_array_fn(batch):
     speech_array, sampling_rate = librosa.load(batch["file"], sr=16_000)
@@ -37,6 +40,11 @@ def speech_file_to_array_fn(batch):
     return batch
     
 def main():
+    start_time = time()
+    def remove_special_characters(batch):
+        batch["target_text"] = re.sub(CHARS_TO_IGNORE_REGEX[args.lang], "", batch["target_text"])
+        return batch
+
     raw_dataset = load_dataset("./sample_speech.py", split="test")
     raw_dataset = raw_dataset.map(remove_special_characters, num_proc = 8, desc="remove special chars")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -46,8 +54,8 @@ def main():
     tokenizer = Wav2Vec2CTCTokenizer.from_pretrained(args.model_dir)
     processor = Wav2Vec2Processor(feature_extractor = feature_extractor, tokenizer = tokenizer)
     
-    references = raw_dataset["target_text"]
-    predictions = []
+    references_temp = raw_dataset["target_text"]
+    predictions_temp = []
     
     
     vectorized_dataset = raw_dataset.map(
@@ -63,27 +71,32 @@ def main():
         predicted_ids = torch.argmax(logits, dim = -1)
         predicted_sentences = processor.batch_decode(predicted_ids)
         return predicted_sentences
+    
+    logger.info("***** Running Evaluation *****")
     for batch in tqdm(vectorized_dataset):
         predicted_sentences = generate_predictions(batch)
-        predictions.append(*predicted_sentences)
+        predictions_temp.append(*predicted_sentences)
         
         
-    predictions = list(map(lambda x: re.sub(CHARS_TO_IGNORE_REGEX, "", x), predictions))
+    predictions_temp = list(map(remove_special_characters, predictions_temp))
     
     
     with open("predictions.txt", "w+", encoding="utf-8") as f:
         for prediction, reference in zip(predictions, references):
             f.write(f"{prediction} :: {reference}\n")
+            
+    predictions, references = [], []
     
-    for i, pair in enumerate(zip(predictions, references)):
+    logger.info("***** Simple postprocessing *****")
+    for i, pair in tqdm(enumerate(zip(predictions, references))):
         prediction, reference =pair
         prediction = prediction.strip()
         prediction = " ".join(list(prediction))
         reference = reference.strip()
         reference = " ".join(list(reference))         
-        if len(prediction) < 1 or len(reference) < 1:
-            predictions.pop(i)
-            references.pop(i)
+        if len(prediction) >0 and len(reference) > 0:
+            predictions.append(prediction)
+            references.append(reference)
         else:
             logger.warning(f"Prediction or reference is empty")
             logger.warning(f"prediction: {prediction}")
@@ -94,8 +107,11 @@ def main():
     try:
         cer_score = cer.compute(predictions = predictions, references = references)
         wer_score = wer.compute(predictions = predictions, references = references)
-        logger.info(f"cer: {cer_score}")
-        logger.info(f"wer: {wer_score}")
+        logger.info("***** eval metrics *****")
+        logger.info(f"  eval_samples: {len(predictions)}")
+        logger.info(f"  eval_cer    : {cer_score}")
+        logger.info(f"  eval_wer    : {wer_score}")
+        logger.info(f"  eval_runtime: {time() - start_time}")
     except Exception as e:
         print(e)
         
@@ -104,5 +120,6 @@ def main():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_dir", help="fine tuned model dir. relative dir path, or repo_id from huggingface")
+    parser.add_argument("--lang", help="ko ja zh en")
     args = parser.parse_args()
     main()
