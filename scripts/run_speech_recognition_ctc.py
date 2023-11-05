@@ -758,7 +758,8 @@ def main():
         compute_metrics=compute_metrics,
         train_dataset=vectorized_datasets["train"] if training_args.do_train else None,
         eval_dataset=vectorized_datasets["eval"] if training_args.do_eval else None,
-        tokenizer=processor
+        tokenizer=processor,
+        callbacks = [EarlyStoppingCallback(early_stopping_patience = 3)]
     )
 
     # 8. Finally, we can start training
