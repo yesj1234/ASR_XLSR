@@ -42,9 +42,17 @@ if __name__ == "__main__":
     )
     bucket = s3.Bucket(BUCKET_NAME)
     count = 0
+    pairs = []
     for obj in bucket.objects.all():
-        pprint(obj)
-        
-        count += 1 
-        if count > 10:
+        try:
+            json_data = obj.get()["Body"].read().decode("utf-8")
+            json_file = json.loads(json_data)
+            path, transcription = get_necesary_info(json_file)
+            pairs.append((path, transcription))
+        except Exception as e:
+            print(e)
+            pass 
+        count += 1
+        if count > 15:
             break
+    print(pairs)
