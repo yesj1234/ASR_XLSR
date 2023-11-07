@@ -2,12 +2,12 @@
 
 ## PREPROCESSING 산출물 DATA
 
-1. **_prepare_from_json_asr.py_**
+1. **_prepare_data.py_**
 
 ```bash
-python3 1.prepare_from_json_asr.py --asr_dest_folder /path/to/the/destination/folder --jsons /path/to/the/folder/containing/jsons
+python3 prepare_data.py --asr_dest_folder /path/to/the/destination/folder --jsons /path/to/the/folder/containing/jsons
 e.g.
-python3 1.prepare_from_json_asr.py --asr_dest_folder ./asr_split --jsons $SPLITS_DIR
+python3 prepare_data.py --asr_dest_folder ./asr_split --jsons $SPLITS_DIR
 ```
 
 2. **_refine_data.py_**
