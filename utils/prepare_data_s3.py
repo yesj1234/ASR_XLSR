@@ -31,7 +31,7 @@ def split_data(pairs):
 if __name__ == "__main__":
     AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
     AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
-    AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
+    AWS_DEFAULT_REGION = "ap-northeast-2"
     BUCKET_NAME = "rmlearningdata"
     
     s3 = boto3.resource(
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
         region_name=AWS_DEFAULT_REGION
     )
-    bucket = s3.bucket(BUCKET_NAME)
+    bucket = s3.Bucket(BUCKET_NAME)
     count = 0
     for obj in bucket.objects.all():
         pprint(obj)
