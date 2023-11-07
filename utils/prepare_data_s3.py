@@ -4,6 +4,8 @@ import argparse
 import numpy as np
 import boto3
 from pprint import pprint 
+from tqdm import tqdm
+
 
 def get_necesary_info(json_file):
     path = json_file["fi_sound_filepath"].split("/")[-5:]
@@ -41,9 +43,8 @@ if __name__ == "__main__":
         region_name=AWS_DEFAULT_REGION
     )
     bucket = s3.Bucket(BUCKET_NAME)
-    count = 0
     pairs = []
-    for obj in bucket.objects.all():
+    for obj in tqdm(bucket.objects.all()):
         try:
             json_data = obj.get()["Body"].read().decode("utf-8")
             json_file = json.loads(json_data)
@@ -52,7 +53,35 @@ if __name__ == "__main__":
         except Exception as e:
             print(e)
             pass 
-        count += 1
-        if count > 15:
-            break
+    
     print(pairs)
+    # np.random.seed(42)
+    # os.makedirs(os.path.join("asr_split"), exist_ok=True)
+    # np.random.shuffle(pairs)
+    # sound_file_paths = list(map(lambda x: x[0], pairs))
+    # sound_file_transcriptions = list(
+    #     map(lambda x: x[1], pairs))
+    # sound_file_path_train, sound_file_path_validate, sound_file_path_test = np.split(
+    #     sound_file_paths, [int(len(sound_file_paths)*0.8), int(len(sound_file_paths)*0.9)])
+    # transcription_train, transcription_validate, transcription_test = np.split(
+    #     sound_file_transcriptions, [int(len(sound_file_transcriptions)*0.8), int(len(sound_file_transcriptions)*0.9)])
+
+    # assert len(sound_file_path_train) == len(
+    #     transcription_train),  "train split 길이 안맞음."
+    # assert len(sound_file_path_test) == len(
+    #     transcription_test),  "test split 길이 안맞음."
+    # assert len(sound_file_path_validate) == len(
+    #     transcription_validate),  "validate split 길이 안맞음."
+
+    # with open(f"{os.path.join('asr_split','train.tsv')}", "a+", encoding="utf-8") as asr_train, \
+    #         open(f"{os.path.join('asr_split','test.tsv')}", "a+", encoding="utf-8") as asr_test, \
+    #         open(f"{os.path.join('asr_split','validation.tsv')}", "a+", encoding="utf-8") as asr_validate:
+    #     for i in range(len(sound_file_path_train)-1):
+    #         asr_train.write(
+    #             f"{sound_file_path_train[i]} :: {transcription_train[i]}\n")
+    #     for i in range(len(sound_file_path_test)-1):
+    #         asr_test.write(
+    #             f"{sound_file_path_test[i]} :: {transcription_test[i]}\n")
+    #     for i in range(len(sound_file_path_validate)-1):
+    #         asr_validate.write(
+    #             f"{sound_file_path_validate[i]} :: {transcription_validate[i]}\n")
