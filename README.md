@@ -5,7 +5,7 @@
 1. **_prepare_data.py_**
 
 ```bash
-python3 prepare_data.py --asr_dest_folder /path/to/the/destination/folder --jsons /path/to/the/folder/containing/jsons
+python3 prepare_data.py --asr_dest_folder /path/to/the/destination/folder --jsons /path/to/the/folder/containing/jsons --ratio 1
 e.g.
 python3 prepare_data.py --asr_dest_folder ./asr_split --jsons $SPLITS_DIR
 ```
@@ -15,19 +15,20 @@ python3 prepare_data.py --asr_dest_folder ./asr_split --jsons $SPLITS_DIR
 Wav2Vec2 xls-r model
 
 ```bash
-python3 refine_data.py --tsv_splits_dir /path/to/the/tsv/splits
+python3 refine_data.py --tsv_splits_dir /path/to/the/tsv/splits --lang lang_code # ko en ja zh
 e.g.
-python3 refine_data.py --tsv_splits_dir ../asr_split
+python3 refine_data.py --tsv_splits_dir ../asr_split --lang ko
 ```
 
-3. export the tsv file path and audio folder path for sample_speech.py to correctly load the data from local.
+3.change the **_self.data_dir_** and **_self.audio_dir_** in sample_speech.py to the right path
 
-```bash
-export DATA_DIR=/path/to/the/refined_splits
-export AUDIO_DIR=/path/to/the/audio/folder
-e.g.
-export DATA_DIR=/home/ubuntu/my_asr/cycle0/asr_example/asr_split
-export AUDIO_DIR=/home/ubuntu/output
+```python
+def _split_generators(self, dl_manager: DownloadManager):
+        # self.data_dir = os.environ["DATA_DIR"]
+        # self.audio_dir = os.environ["AUDIO_DIR"]
+        
+        self.data_dir = os.path.join("../../", '영어(EN)_한국어(KO)', "asr_split") # set the asr_split path generated from prepare_data.py
+        self.audio_dir = os.path.join("../..") 
 ```
 
 4. set configurations before running the training script. possible arguments can be found in run_speech_recognition_ctc.sh. for example
@@ -38,37 +39,40 @@ export AUDIO_DIR=/home/ubuntu/output
   "overwrite_output_dir": true,
   "freeze_feature_encoder": true,
   "attention_dropout": 0.1,
-  "hidden_dropout": 0.1,
-  "feat_proj_dropout": 0.1,
-  "mask_time_prob": 0.3,
-  "mask_feature_length": 64,
-  "layerdrop": 0.1,
+  "hidden_dropout": 0.05,
+  "feat_proj_dropout": 0.05,
+  "mask_time_prob": 0.05,
+  "mask_feature_length": 10,
+  "layerdrop": 0.05,
   "ctc_loss_reduction": "mean",
   "dataset_name": "./sample_speech.py",
   "train_split_name": "train",
   "audio_column_name": "audio",
   "text_column_name": "target_text",
-  "eval_metrics": ["cer"],
+  "eval_metrics": ["cer", "wer"],
   "unk_token": "[UNK]",
   "pad_token": "[PAD]",
   "word_delimiter_token": "|",
   "output_dir": "./ko-xlsr",
   "do_train": true,
+  "do_eval": true,
   "do_predict": true,
-  "evaluation_strategy": "steps",
-  "eval_steps": 1000,
   "per_device_train_batch_size": 2,
   "per_device_eval_batch_size": 2,
   "gradient_accumulation_steps": 2,
-  "num_train_epochs": 50,
+  "eval_accumulation_steps": 2,
+  "auto_find_batch_size": true,
+  "num_train_epochs": 10,
   "save_strategy": "epoch",
+  "evaluation_strategy": "epoch",
   "logging_strategy": "epoch",
   "learning_rate": 5e-4,
   "warmup_steps": 500,
   "save_total_limit": 1,
   "group_by_length": true,
   "fp16": true,
-  "max_duration_in_seconds": 10,
+  "max_duration_in_seconds": 20,
+  "min_duration_in_seconds": 2,
   "chars_to_ignore": [
     ",",
     "?",
@@ -82,32 +86,6 @@ export AUDIO_DIR=/home/ubuntu/output
     ")",
     ".",
     "·",
-    "\u001c",
-    "a",
-    "b",
-    "c",
-    "d",
-    "e",
-    "f",
-    "g",
-    "h",
-    "i",
-    "j",
-    "k",
-    "l",
-    "m",
-    "n",
-    "o",
-    "p",
-    "r",
-    "s",
-    "t",
-    "u",
-    "v",
-    "w",
-    "x",
-    "y",
-    "z",
     "@"
   ]
 }
@@ -117,6 +95,15 @@ export AUDIO_DIR=/home/ubuntu/output
 ```bash
 bash run_speech_recognition_ctc.bash
 ```
+
+6. After the training is finished, compute the metrics with some more postprocessing for more accurate CER of WER score.
+```bash
+python3 compute_metrics.py --model_dir ./model_path --lang lang_code
+e.g.
+python3 compute_metrics.py --model_dir ./koen_xlsr_100p_run1 --lang ko
+```
+
+
 ## Dockerizing
 ### Prerequisites
 Docker and NVIDIA driver MUST be installed in your host OS. 
@@ -170,14 +157,20 @@ bash run_container.sh # sudo docker run -it --ipc host --gpus all -v /home/ubunt
 ``` 
 3. preprocess(inside the container)
 ```bash
-python prepare_data.py --asr_dest_folder /home/data/한국어(KO)_일본어(JP) --jsons /home/data/한국어(KO)_일본어(JP) # python prepare_data.py --asr_dest_folder /home/data/SourceLang(lang_code)_TargetLang(lang_code)
+python prepare_data.py --asr_dest_folder /home/data/data_dir_path --jsons /home/data/data_dir_path --lang lang_code --ratio 1 # python prepare_data.py --asr_dest_folder /home/data/SourceLang(lang_code)_TargetLang(lang_code)
 python refine_data.py --tsv_splits_dir /home/data/한국어(KO)_일본어(JP)/asr_split --lang ko # python refine_data.py --tsv_splits_dir /home/data/SourceLang(lang_code)_TargetLang(lang_code)/asr_split --lang (lang_code)
 ```
-4. change DATA_DIR, AUDIO_DIR in run_speech_recognition_ctc.sh and run training
-```bash
-export DATA_DIR=/home/data/'한국어(KO)_일본어(JP)'/asr_split # Change this to the actual path
-export AUDIO_DIR=/home/data/
+4. change self.audio_dir and self.path_dir in sample_speech.py
+
+```python
+def _split_generators(self, dl_manager: DownloadManager):
+        # self.data_dir = os.environ["DATA_DIR"]
+        # self.audio_dir = os.environ["AUDIO_DIR"]
+        
+        self.data_dir = os.path.join("../../", '영어(EN)_한국어(KO)', "asr_split") # set the asr_split path generated from prepare_data.py
+        self.audio_dir = os.path.join("../..") 
 ```
+
 ```bash
 bash run_speech_recognition_ctc.sh
 ```
