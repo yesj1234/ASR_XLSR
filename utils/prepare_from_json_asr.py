@@ -54,7 +54,7 @@ CATEGORY: Dict[str, str] = {
 }
 
 
-def get_neccesary_info(json_file):
+def get_necesary_info(json_file):
     def _replace_path(path):
         for key in CATEGORY:
             path = path.replace(CATEGORY[key], key)
@@ -84,7 +84,7 @@ def get_pairs(dir_path, ratio = 1.0):
                         if ext == ".json":
                             with open(os.path.join(root, dir, file), "r", encoding="utf-8") as json_file:
                                 try:
-                                    path, transcription = get_neccesary_info(
+                                    path, transcription = get_necesary_info(
                                         json_file)
                                     pairs.append((path, transcription))
                                 except Exception as e:
