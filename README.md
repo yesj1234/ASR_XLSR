@@ -2,14 +2,6 @@
 
 ## PREPROCESSING 산출물 DATA
 
-0. **_validation_**
-
-```bash
-python3 0.json_validator.py --jsons /path/to/the/folder/containing/json/files
-e.g.
-python3 0.json_validator.py --jsons ./output
-```
-
 1. **_prepare_from_json_asr.py_**
 
 ```bash
