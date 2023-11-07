@@ -2,20 +2,12 @@
 
 ## PREPROCESSING 산출물 DATA
 
-0. **_validation_**
+1. **_prepare_data.py_**
 
 ```bash
-python3 0.json_validator.py --jsons /path/to/the/folder/containing/json/files
+python3 prepare_data.py --asr_dest_folder /path/to/the/destination/folder --jsons /path/to/the/folder/containing/jsons
 e.g.
-python3 0.json_validator.py --jsons ./output
-```
-
-1. **_prepare_from_json_asr.py_**
-
-```bash
-python3 1.prepare_from_json_asr.py --asr_dest_folder /path/to/the/destination/folder --jsons /path/to/the/folder/containing/jsons
-e.g.
-python3 1.prepare_from_json_asr.py --asr_dest_folder ./asr_split --jsons $SPLITS_DIR
+python3 prepare_data.py --asr_dest_folder ./asr_split --jsons $SPLITS_DIR
 ```
 
 2. **_refine_data.py_**
@@ -178,8 +170,8 @@ bash run_container.sh # sudo docker run -it --ipc host --gpus all -v /home/ubunt
 ``` 
 3. preprocess(inside the container)
 ```bash
-python 1.prepare_from_json_asr.py --asr_dest_folder /home/data/한국어(KO)_일본어(JP) --jsons /home/data/한국어(KO)_일본어(JP) # python 1.prepare_from_json_asr.py --asr_dest_folder /home/data/SourceLang(lang_code)_TargetLang(lang_code)
-python refine_data.py --tsv_splits_dir /home/data/한국어(KO)_일본어(JP)/asr_split # python refine_data.py --tsv_splits_dir /home/data/SourceLang(lang_code)_TargetLang(lang_code)/asr_split
+python prepare_data.py --asr_dest_folder /home/data/한국어(KO)_일본어(JP) --jsons /home/data/한국어(KO)_일본어(JP) # python prepare_data.py --asr_dest_folder /home/data/SourceLang(lang_code)_TargetLang(lang_code)
+python refine_data.py --tsv_splits_dir /home/data/한국어(KO)_일본어(JP)/asr_split --lang ko # python refine_data.py --tsv_splits_dir /home/data/SourceLang(lang_code)_TargetLang(lang_code)/asr_split --lang (lang_code)
 ```
 4. change DATA_DIR, AUDIO_DIR in run_speech_recognition_ctc.sh and run training
 ```bash
