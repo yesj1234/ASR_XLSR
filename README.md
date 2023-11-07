@@ -146,7 +146,7 @@ sudo systemctl restart docker
 ```bash
 sudo docker run --rm --gpus all ubuntu:20.04 nvidia-smi
 ```
-## Simply run the training scripts in 4 steps with docker. 
+## run the training scripts with docker.
 1. build 
 ```bash
 sudo docker build -t xlsr .
@@ -171,9 +171,19 @@ def _split_generators(self, dl_manager: DownloadManager):
         self.audio_dir = os.path.join("../..") 
 ```
 
+5. run the training script
 ```bash
 bash run_speech_recognition_ctc.sh
 ```
+
+6. After the training is finished, compute the metrics with some more postprocessing for more accurate CER of WER score.
+```bash
+python3 compute_metrics.py --model_dir ./model_path --lang lang_code
+e.g.
+python3 compute_metrics.py --model_dir ./koen_xlsr_100p_run1 --lang ko
+```
+
+
 # ENVIRONMENT
 - OS: Canonical Ubuntu 20.04 
 - CPU: 64 OCPU(Oracle CPU)
