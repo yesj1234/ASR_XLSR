@@ -1,0 +1,12 @@
+pykakasi==2.2.1
+transformers==4.35.0
+datasets==2.14.6
+torch==2.1.0
+numpy==1.26.2
+jiwer==3.0.3
+soundfile==0.12.1
+librosa==0.10.1
+evaluate==0.4.1
+sox==1.4.1
+accelerate==0.24.1
+
