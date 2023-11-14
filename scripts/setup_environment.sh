@@ -24,7 +24,7 @@ pip install mecab-python3
 pip install unidic-lite # dependecy for mecab tagging
 
 # 5. install python libraries 
-pip install pykakasi transformers datasets torch torchaudio torchvision numpy jiwer soundfile librosa evaluate
+pip install transformers datasets torch torchaudio numpy jiwer soundfile librosa evaluate
 sudo apt-get install -y sox 
 pip install sox 
 sudo apt update 
