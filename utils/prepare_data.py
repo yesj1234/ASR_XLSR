@@ -113,13 +113,13 @@ def split_data(pairs):
                                                                          int(len(filenames)*0.8), int(len(filenames)*0.9)])
     
     assert len(transcription_train) == len(
-        translation_train), "train split 길이 안맞음."
+        paths_train), "train split 길이 안맞음."
     assert len(transcription_test) == len(
-        translation_test), "test split 길이 안맞음."
+        paths_test), "test split 길이 안맞음."
     assert len(transcription_validate) == len(
-        translation_validate), "validate split 길이 안맞음."
+        paths_validate), "validate split 길이 안맞음."
     return paths_train, paths_validate, paths_test, \
-        transcription_train, transcription_validate, transcription_test \
+        transcription_train, transcription_validate, transcription_test, \
         filenames_train, filenames_validate, filenames_test
 
 
@@ -136,34 +136,35 @@ def main(args):
     
     np.random.shuffle(path_and_transcription_sets)
     sound_file_paths = list(map(lambda x: x[0], path_and_transcription_sets))
+
     paths_train, paths_validate, paths_test, \
-        transcription_train, transcription_validate, transcription_test \
-        filenames_train, filenames_validate, filenames_test = split_data(path_and_transcription_sets)
+    transcription_train, transcription_validate, transcription_test, \
+    filenames_train, filenames_validate, filenames_test = split_data(path_and_transcription_sets)
     
 
     with open(f"{os.path.join(args.asr_dest_folder, 'asr_split','train.tsv')}", "a+", encoding="utf-8") as asr_train, \
         open(f"{os.path.join(args.asr_dest_folder, 'asr_split','test.tsv')}", "a+", encoding="utf-8") as asr_test, \
-        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','validation.tsv')}", "a+", encoding="utf-8") as asr_validate \
-        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','train_filenames.tsv')}", "a+", encoding="utf-8") as asr_train_filename \
-        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','test_filenames.tsv')}", "a+", encoding="utf-8") as asr_test_filename \
+        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','validation.tsv')}", "a+", encoding="utf-8") as asr_validate, \
+        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','train_filenames.tsv')}", "a+", encoding="utf-8") as asr_train_filename, \
+        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','test_filenames.tsv')}", "a+", encoding="utf-8") as asr_test_filename, \
         open(f"{os.path.join(args.asr_dest_folder, 'asr_split','validation_filenames.tsv')}", "a+", encoding="utf-8") as asr_validation_filename:
-        for i in range(len(sound_file_path_train)-1):
+        for i in range(len(paths_train)-1):
             asr_train.write(
-                f"{sound_file_path_train[i]} :: {transcription_train[i]}\n")
+                f"{paths_train[i]} :: {transcription_train[i]}\n")
             asr_train_filename.write(
-                f"{filenames_train[i]} :: {sound_file_path_train[i]} :: {transcription_train[i]}\n"
+                f"{filenames_train[i]} :: {paths_train[i]} :: {transcription_train[i]}\n"
             )
-        for i in range(len(sound_file_path_test)-1):
+        for i in range(len(paths_test)-1):
             asr_test.write(
-                f"{sound_file_path_test[i]} :: {transcription_test[i]}\n")
+                f"{paths_test[i]} :: {transcription_test[i]}\n")
             asr_test_filename.write(
-                f"{filenames_test[i]} :: {sound_file_path_test[i]} :: {transcription_test[i]}\n"
+                f"{filenames_test[i]} :: {paths_test[i]} :: {transcription_test[i]}\n"
             )
-        for i in range(len(sound_file_path_validate)-1):
+        for i in range(len(paths_validate)-1):
             asr_validate.write(
-                f"{sound_file_path_validate[i]} :: {transcription_validate[i]}\n")
+                f"{paths_validate[i]} :: {transcription_validate[i]}\n")
             asr_validation_filename.write(
-                f"{filenames_validate[i]} :: {sound_file_path_validate[i]} :: {transcription_validate[i]}\n"
+                f"{filenames_validate[i]} :: {paths_validate[i]} :: {transcription_validate[i]}\n"
             )
 
 if __name__ == "__main__":
