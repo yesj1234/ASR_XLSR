@@ -15,12 +15,12 @@ refine_mapper = {
     "ja": refine_ja
 }
 
-
+files_to_refine = ["train", "test", "validation"]
 def main(args):
     for root, _dir, files in os.walk(args.tsv_splits_dir):
         for file in files:
             fname, ext = os.path.splitext(file)
-            if ext == ".tsv":
+            if ext == ".tsv" and fname in files_to_refine:
                 with open(os.path.join(root, file), "r+", encoding="utf-8") as original_file, open(os.path.join(root, f"{fname}_refined.tsv"), "w+", encoding="utf-8") as refined_file:
                     lines = original_file.readlines()
                     new_lines = []

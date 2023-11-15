@@ -62,14 +62,20 @@ def get_necesary_info(json_file):
         return path
     try:
         json_data = json.load(json_file)
-    except Exception as e:
-        print(e)
-        print(json_file)
+    except Exception:
+        logger.exception("message")
+        pass
     path = json_data["fi_sound_filepath"].split("/")[-5:]
     path = '/'.join(path)
     path = _replace_path(path)
+    
     transcription = json_data["tc_text"]
-    return path, transcription
+    
+    json_filename = json_data["fi_sound_filepath"].split("/")[-3:]
+    json_filename = "/".join(json_filename)
+    json_filename = json_filename.replace(".wav", ".json")
+    
+    return path, transcription, json_filename
 
 
 def get_pairs(dir_path, ratio = 1.0):
@@ -85,9 +91,9 @@ def get_pairs(dir_path, ratio = 1.0):
                         if ext == ".json":
                             with open(os.path.join(root, dir, file), "r", encoding="utf-8") as json_file:
                                 try:
-                                    path, transcription = get_necesary_info(
+                                    path, transcription, json_filename = get_necesary_info(
                                         json_file)
-                                    pairs.append((path, transcription))
+                                    pairs.append((path, transcription, json_filename))
                                 except Exception as e:
                                     logger.warning(e)
                                     logger.warning(file)
@@ -96,19 +102,26 @@ def get_pairs(dir_path, ratio = 1.0):
     return pairs[:maximum_index] # return the given ratio. defaults to 100%.
 
 def split_data(pairs):
-    transcriptions = list(map(lambda x:x[0], pairs))
-    translations = list(map(lambda x:x[1], pairs))
+    paths = list(map(lambda x:x[0], pairs))
+    transcriptions = list(map(lambda x:x[1], pairs))
+    filenames = list(map(lambda x: x[2], pairs))
     transcription_train, transcription_validate, transcription_test = np.split(
         transcriptions, [int(len(transcriptions)*0.8), int(len(transcriptions)*0.9)])
-    translation_train, translation_validate, translation_test = np.split(translations, [
-                                                                         int(len(translations)*0.8), int(len(translations)*0.9)])
+    paths_train, paths_validate, paths_test = np.split(paths, [
+                                                                         int(len(paths)*0.8), int(len(paths)*0.9)])
+    filenames_train, filenames_validate, filenames_test = np.split(filenames, [
+                                                                         int(len(filenames)*0.8), int(len(filenames)*0.9)])
+    
     assert len(transcription_train) == len(
         translation_train), "train split 길이 안맞음."
     assert len(transcription_test) == len(
         translation_test), "test split 길이 안맞음."
     assert len(transcription_validate) == len(
         translation_validate), "validate split 길이 안맞음."
-    return transcription_train, transcription_validate, transcription_test, translation_train, translation_validate, translation_test
+    return paths_train, paths_validate, paths_test, \
+        transcription_train, transcription_validate, transcription_test \
+        filenames_train, filenames_validate, filenames_test
+
 
 
 def main(args):
@@ -123,33 +136,35 @@ def main(args):
     
     np.random.shuffle(path_and_transcription_sets)
     sound_file_paths = list(map(lambda x: x[0], path_and_transcription_sets))
-    sound_file_transcriptions = list(
-        map(lambda x: x[1], path_and_transcription_sets))
-    sound_file_path_train, sound_file_path_validate, sound_file_path_test = np.split(
-        sound_file_paths, [int(len(sound_file_paths)*0.8), int(len(sound_file_paths)*0.9)])
-    transcription_train, transcription_validate, transcription_test = np.split(
-        sound_file_transcriptions, [int(len(sound_file_transcriptions)*0.8), int(len(sound_file_transcriptions)*0.9)])
-
-    assert len(sound_file_path_train) == len(
-        transcription_train),  "train split 길이 안맞음."
-    assert len(sound_file_path_test) == len(
-        transcription_test),  "test split 길이 안맞음."
-    assert len(sound_file_path_validate) == len(
-        transcription_validate),  "validate split 길이 안맞음."
+    paths_train, paths_validate, paths_test, \
+        transcription_train, transcription_validate, transcription_test \
+        filenames_train, filenames_validate, filenames_test = split_data(path_and_transcription_sets)
+    
 
     with open(f"{os.path.join(args.asr_dest_folder, 'asr_split','train.tsv')}", "a+", encoding="utf-8") as asr_train, \
-            open(f"{os.path.join(args.asr_dest_folder, 'asr_split','test.tsv')}", "a+", encoding="utf-8") as asr_test, \
-            open(f"{os.path.join(args.asr_dest_folder, 'asr_split','validation.tsv')}", "a+", encoding="utf-8") as asr_validate:
+        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','test.tsv')}", "a+", encoding="utf-8") as asr_test, \
+        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','validation.tsv')}", "a+", encoding="utf-8") as asr_validate \
+        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','train_filenames.tsv')}", "a+", encoding="utf-8") as asr_train_filename \
+        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','test_filenames.tsv')}", "a+", encoding="utf-8") as asr_test_filename \
+        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','validation_filenames.tsv')}", "a+", encoding="utf-8") as asr_validation_filename:
         for i in range(len(sound_file_path_train)-1):
             asr_train.write(
                 f"{sound_file_path_train[i]} :: {transcription_train[i]}\n")
+            asr_train_filename.write(
+                f"{filenames_train[i]} :: {sound_file_path_train[i]} :: {transcription_train[i]}\n"
+            )
         for i in range(len(sound_file_path_test)-1):
             asr_test.write(
                 f"{sound_file_path_test[i]} :: {transcription_test[i]}\n")
+            asr_test_filename.write(
+                f"{filenames_test[i]} :: {sound_file_path_test[i]} :: {transcription_test[i]}\n"
+            )
         for i in range(len(sound_file_path_validate)-1):
             asr_validate.write(
                 f"{sound_file_path_validate[i]} :: {transcription_validate[i]}\n")
-
+            asr_validation_filename.write(
+                f"{filenames_validate[i]} :: {sound_file_path_validate[i]} :: {transcription_validate[i]}\n"
+            )
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
