@@ -135,8 +135,7 @@ def main(args):
         path_and_transcription_sets = [*path_and_transcription_sets, *pairs]   
     
     np.random.shuffle(path_and_transcription_sets)
-    sound_file_paths = list(map(lambda x: x[0], path_and_transcription_sets))
-
+    
     paths_train, paths_validate, paths_test, \
     transcription_train, transcription_validate, transcription_test, \
     filenames_train, filenames_validate, filenames_test = split_data(path_and_transcription_sets)
