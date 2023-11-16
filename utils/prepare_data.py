@@ -124,22 +124,30 @@ def split_data(pairs):
 
 
 def write_split_tsv(destination, paths, transcriptions):
-    assert isinstance(transcriptions, np.ndarray) == False, "transcriptions should be a list"
-    assert isinstance(paths, np.ndarray) == False, "paths should be a list"    
+    assert isinstance(transcriptions, np.ndarray) == True, "transcriptions should be a np.ndarray"
+    assert isinstance(paths, np.ndarray) == True, "paths should be a np.ndarray"    
 
-    split = str(destination).split("/")[-1]
-    logger.info(f"writing {split} in {destination}. transcription length: {len(transcriptions)}, translation length: {len(paths)}")
+    split_filename, ext = os.path.splitext(destination)
+    split_filename = split_filename.split("\\")[-1]
+    logger.info(f"""
+                writing {split_filename + ext} in {destination}. 
+                transcription length: {len(transcriptions)}
+                translation length  : {len(paths)}""")
     with open(destination, "a+", encoding = "utf-8") as split:
         for i in range(len(transcriptions)-1):
             split.write(f"{paths[i]} :: {transcriptions[i]}\n")
         
 def write_filename_tsv(destination, filenames, paths, transcriptions):
-    assert isinstance(transcriptions, np.ndarray) == False, "transcriptions should be a list"
-    assert isinstance(paths, np.ndarray) == False, "paths should be a list"    
-    assert isinstance(filenames, np.ndarray) == False, "filenames should be a list"
+    assert isinstance(transcriptions, np.ndarray) == True, "transcriptions should be a np.ndarray"
+    assert isinstance(paths, np.ndarray) == True, "paths should be a np.ndarray"    
+    assert isinstance(filenames, np.ndarray) == True, "filenames should be a np.ndarray"
     
-    split = str(destination).split("/")[-1]
-    logger.info(f"writing {split} in {destination}. \ntranscription length: {len(transcriptions)}, \npaths length: {len(paths)}")
+    split_filename, ext = os.path.splitext(destination)
+    split_filename = split_filename.split("\\")[-1]
+    logger.info(f"""
+                writing {split_filename + ext} in {destination}. 
+                transcription length: {len(transcriptions)}
+                paths length        : {len(paths)}""")
     with open(destination, "a+", encoding = "utf-8") as split:
         for i in range(len(transcriptions)-1):
             split.write(f"{filenames[i]} :: {paths[i]} :: {transcriptions[i]}\n")
