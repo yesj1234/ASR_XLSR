@@ -124,8 +124,8 @@ def split_data(pairs):
 
 
 def write_split_tsv(destination, paths, transcriptions):
-    assert isinstance(transcriptions, list) == False, "transcriptions should be a list"
-    assert isinstance(paths, list) == False, "paths should be a list"    
+    assert isinstance(transcriptions, np.ndarray) == False, "transcriptions should be a list"
+    assert isinstance(paths, np.ndarray) == False, "paths should be a list"    
 
     split = str(destination).split("/")[-1]
     logger.info(f"writing {split} in {destination}. transcription length: {len(transcriptions)}, translation length: {len(paths)}")
@@ -134,9 +134,9 @@ def write_split_tsv(destination, paths, transcriptions):
             split.write(f"{paths[i]} :: {transcriptions[i]}\n")
         
 def write_filename_tsv(destination, filenames, paths, transcriptions):
-    assert isinstance(transcriptions, list) == False, "transcriptions should be a list"
-    assert isinstance(paths, list) == False, "paths should be a list"    
-    assert isinstance(filenames, list) == False, "filenames should be a list"
+    assert isinstance(transcriptions, np.ndarray) == False, "transcriptions should be a list"
+    assert isinstance(paths, np.ndarray) == False, "paths should be a list"    
+    assert isinstance(filenames, np.ndarray) == False, "filenames should be a list"
     
     split = str(destination).split("/")[-1]
     logger.info(f"writing {split} in {destination}. \ntranscription length: {len(transcriptions)}, \npaths length: {len(paths)}")
@@ -172,20 +172,13 @@ def main(args):
     
     for args_tuple in tsv_args["split_tsv_args"]:
         dest_filename, path_list, transcription_list = args_tuple
-        assert isinstance(dest_filename, str) == False, "dest_filename should be string"
-        assert isinstance(path_list, list) == False, "dest_filename should be list"
-        assert isinstance(transcription_list, list) == False, "dest_filename should be list"
-
+        
         write_split_tsv(destination = os.path.join(args.asr_dest_folder, "asr_split", dest_filename),
                         paths = path_list,
                         transcriptions = transcription_list)
     
     for args_tuple in tsv_args["filename_tsv_args"]:
         dest_filename, filename_list, path_list, transcription_list = args_tuple
-        assert isinstance(dest_filename, str) == False, "dest_filename should be string"
-        assert isinstance(filename_list, list) == False, "filename_list should be list"
-        assert isinstance(path_list, list) == False, "dest_filename should be list"
-        assert isinstance(transcription_list, list) == False, "dest_filename should be list"
         
         write_filename_tsv(destination = os.path.join(args.asr_dest_folder, "asr_split", dest_filename),
                            filenames = filename_list,
