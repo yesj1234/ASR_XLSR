@@ -11,20 +11,18 @@ sudo apt-get install -y cuda
 # 3. install pip
 sudo apt install -y python3-pip 
 
-# 4. install mecab
-wget https://bitbucket.org/eunjeon/mecab-ko/downloads/mecab-0.996-ko-0.9.2.tar.gz
-tar xvfz mecab-0.996-ko-0.9.2.tar.gz
-cd mecab-0.996-ko-0.9.2
-./configure
-make
-make check
-sudo make install
-sudo ldconfig
-pip install mecab-python3 
-pip install unidic-lite # dependecy for mecab tagging
-
-# 5. install python libraries 
-pip install transformers datasets torch torchaudio numpy jiwer soundfile librosa evaluate
+# 4. install python libraries 
+pip install mecab-python3
+pip install unidic-lite
+pip install transformers 
+pip install datasets 
+pip install torch 
+pip install torchaudio 
+pip install numpy 
+pip install jiwer 
+pip install soundfile 
+pip install librosa 
+pip install evaluate
 sudo apt-get install -y sox 
 pip install sox 
 sudo apt update 
