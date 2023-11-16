@@ -1,9 +1,5 @@
 #! /usr/bin/env bash 
 
-export DATA_DIR=/home/ubuntu/'영어(EN)_한국어(KO)'/asr_split
-export AUDIO_DIR=/home/ubuntu/
-
-
 LOCAL_RANK=0,1,2,3 \
 CUDA_VISIBLE_DEVICES=0,1,2,3 \
 python3 -m torch.distributed.launch --nproc_per_node 4 \
