@@ -1,6 +1,4 @@
 __pycache__/
-scripts/en-xlsr/*
-scripts/ko-xlsr/*
-scripts/ko-xlsr2/*
 scripts/*.json
 scripts/wandb/*
+**/*xlsr*/
