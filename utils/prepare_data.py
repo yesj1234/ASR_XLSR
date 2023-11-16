@@ -164,7 +164,7 @@ def main(args):
     tsv_args = {
         "split_tsv_args": [("train.tsv", paths_train, transcription_train), 
                       ("validation.tsv", paths_validate, transcription_validate), 
-                      ("test.tsv", paths_)],
+                      ("test.tsv", paths_test, transcription_test)],
         "filename_tsv_args": [("filename_train.tsv", filenames_train, paths_train, transcription_train), 
                       ("filename_validation.tsv", filenames_validate, paths_validate, transcription_validate), 
                       ("filename_test.tsv", filenames_test, paths_test, transcription_test)]
