@@ -123,6 +123,27 @@ def split_data(pairs):
         filenames_train, filenames_validate, filenames_test
 
 
+def write_split_tsv(destination, paths, transcriptions):
+    assert isinstance(transcriptions, list) == False, "transcriptions should be a list"
+    assert isinstance(paths, list) == False, "paths should be a list"    
+
+    split = str(destination).split("/")[-1]
+    logger.info(f"writing {split} in {destination}. transcription length: {len(transcriptions)}, translation length: {len(paths)}")
+    with open(destination, "a+", encoding = "utf-8") as split:
+        for i in range(len(transcriptions)-1):
+            split.write(f"{paths[i]} :: {transcriptions[i]}\n")
+        
+def write_filename_tsv(destination, filenames, paths, transcriptions):
+    assert isinstance(transcriptions, list) == False, "transcriptions should be a list"
+    assert isinstance(paths, list) == False, "paths should be a list"    
+    assert isinstance(filenames, list) == False, "filenames should be a list"
+    
+    split = str(destination).split("/")[-1]
+    logger.info(f"writing {split} in {destination}. \ntranscription length: {len(transcriptions)}, \npaths length: {len(paths)}")
+    with open(destination, "a+", encoding = "utf-8") as split:
+        for i in range(len(transcriptions)-1):
+            split.write(f"{filenames[i]} :: {paths[i]} :: {transcriptions[i]}\n")
+     
 
 def main(args):
     np.random.seed(42)
@@ -140,32 +161,29 @@ def main(args):
     transcription_train, transcription_validate, transcription_test, \
     filenames_train, filenames_validate, filenames_test = split_data(path_and_transcription_sets)
     
-
-    with open(f"{os.path.join(args.asr_dest_folder, 'asr_split','train.tsv')}", "a+", encoding="utf-8") as asr_train, \
-        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','test.tsv')}", "a+", encoding="utf-8") as asr_test, \
-        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','validation.tsv')}", "a+", encoding="utf-8") as asr_validate, \
-        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','train_filenames.tsv')}", "a+", encoding="utf-8") as asr_train_filename, \
-        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','test_filenames.tsv')}", "a+", encoding="utf-8") as asr_test_filename, \
-        open(f"{os.path.join(args.asr_dest_folder, 'asr_split','validation_filenames.tsv')}", "a+", encoding="utf-8") as asr_validation_filename:
-        for i in range(len(paths_train)-1):
-            asr_train.write(
-                f"{paths_train[i]} :: {transcription_train[i]}\n")
-            asr_train_filename.write(
-                f"{filenames_train[i]} :: {paths_train[i]} :: {transcription_train[i]}\n"
-            )
-        for i in range(len(paths_test)-1):
-            asr_test.write(
-                f"{paths_test[i]} :: {transcription_test[i]}\n")
-            asr_test_filename.write(
-                f"{filenames_test[i]} :: {paths_test[i]} :: {transcription_test[i]}\n"
-            )
-        for i in range(len(paths_validate)-1):
-            asr_validate.write(
-                f"{paths_validate[i]} :: {transcription_validate[i]}\n")
-            asr_validation_filename.write(
-                f"{filenames_validate[i]} :: {paths_validate[i]} :: {transcription_validate[i]}\n"
-            )
-
+    write_split_tsv(destination = os.path.join(args.asr_dest_folder, "asr_split", "train.tsv"),
+                    paths = paths_train,
+                    transcriptions = transcription_train)
+    write_split_tsv(destination = os.path.join(args.asr_dest_folder, "asr_split", "validation.tsv"),
+                    paths = paths_validate,
+                    transcriptions = transcription_validate)
+    write_split_tsv(destination = os.path.join(args.asr_dest_folder, "asr_split", "test.tsv"),
+                    paths = paths_test,
+                    transcriptions = transcription_test)
+    
+    write_filename_tsv(destination = os.path.join(args.asr_dest_folder, "asr_split", "train_filename.tsv"),
+                    filenames = filenames_train,
+                    paths = paths_train,
+                    transcriptions = transcription_train)
+    write_filename_tsv(destination = os.path.join(args.asr_dest_folder, "asr_split", "validation_filename.tsv"),
+                    filenames = filenames_validate,
+                    paths = paths_validate,
+                    transcriptions = transcription_validate)
+    write_filename_tsv(destination = os.path.join(args.asr_dest_folder, "asr_split", "test_filename.tsv"),
+                    filenames = filenames_test,
+                    paths = paths_test,
+                    transcriptions = transcription_test)
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--asr_dest_folder", type=str, required=True,
