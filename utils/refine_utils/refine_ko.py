@@ -24,4 +24,7 @@ def refine_ko(transcription):
     if matched:
         for item in matched:
             transcription = transcription.replace(item, "")
-    return transcription
+    
+    transcription = transcription.split()
+    transcription = " ".join(transcription)
+    return transcription 

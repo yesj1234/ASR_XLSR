@@ -11,8 +11,7 @@ def refine_en(line):
     if matched:
         for item in matched:
             line = line.replace(item, "")
-    else:
-        pass
+    
     matched = re.findall(PARENTHESIS_PAIR_WITH_SLASH, line)
     if matched:
         for item in matched:
@@ -23,12 +22,12 @@ def refine_en(line):
             except Exception as e:
                 print(e)
                 pass
-    else:
-        pass        
+    
     matched = re.findall(SPECIAL_CHARS_EN, line) # 위의 사항외의 특수기호들은 제거. 
     if matched:
         for item in matched:
             line = line.replace(item, "")
-        return line
-    else:
-        return line
+    
+    line = line.split()
+    line = " ".join(line)
+    return line 

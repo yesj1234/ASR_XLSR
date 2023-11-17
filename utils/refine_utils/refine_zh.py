@@ -55,6 +55,7 @@ def refine_zh(line):
             word_only = "".join(word_only)
             # print(word_only)
             line = line.replace(item, word_only)
-        return line
-    else:
-        return line
+        
+    line = line.split()
+    line = " ".join(line)
+    return line 

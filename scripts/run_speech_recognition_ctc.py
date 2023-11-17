@@ -616,6 +616,7 @@ def main():
             "pad_token_id": tokenizer.pad_token_id,
             "vocab_size": len(tokenizer),
             "activation_dropout": model_args.activation_dropout,
+            "ctc_zero_infinity": True
         }
     )
 
@@ -836,4 +837,6 @@ def main():
 
 
 if __name__ == "__main__":
+    os.environ["TORCH_CPP_LOG_LEVEL"]="INFO"
+    os.environ["TORCH_DISTRIBUTED_DEBUG"] = "DETAIL"
     main()

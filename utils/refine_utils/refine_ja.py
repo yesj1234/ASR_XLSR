@@ -69,5 +69,7 @@ def refine_ja(line):
         # print(f"line: {line}")
         line = re.sub(MULTI_SPEAKER_BRACKET, "", line)
         # print(f"line changed: {line}")
-        return line
-    return line
+        
+    line = line.split()
+    line = " ".join(line)
+    return line 

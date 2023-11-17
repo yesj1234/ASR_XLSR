@@ -27,7 +27,7 @@ def main(args):
                     
                     for line in lines: 
                         _path, target_text = line.split(" :: ")
-                        target_text = refine_mapper[args.lang](target_text)
+                        target_text = refine_mapper[args.lang](target_text.strip())
                         new_lines.append(f"{_path} :: {target_text}")
                     
                     for l in new_lines:
