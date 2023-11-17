@@ -28,7 +28,7 @@ def main(args):
                     for line in lines: 
                         _path, target_text = line.split(" :: ")
                         target_text = refine_mapper[args.lang](target_text.strip())
-                        new_lines.append(f"{_path} :: {target_text}")
+                        new_lines.append(f"{_path} :: {target_text}\n")
                     
                     for l in new_lines:
                         refined_file.write(l)    
