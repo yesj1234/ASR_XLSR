@@ -28,6 +28,7 @@
 import json
 import os
 import argparse
+from sys import platform
 import numpy as np
 from typing import Dict
 import logging
@@ -143,7 +144,10 @@ def write_filename_tsv(destination, filenames, paths, transcriptions):
     assert isinstance(filenames, np.ndarray) == True, "filenames should be a np.ndarray"
     
     split_filename, ext = os.path.splitext(destination)
-    split_filename = split_filename.split("\\")[-1]
+    if platform == "win32":
+        split_filename = split_filename.split("\\")[-1]
+    else:
+        split_filename = split_filename.split("/")[-1]
     logger.info(f"""
                 writing {split_filename + ext} in {destination}. 
                 transcription length: {len(transcriptions)}
