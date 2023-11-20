@@ -38,8 +38,6 @@ def refine_ja(line):
                     word = item.split(chr(65295))[0][1:]
                     # print(f"word with slash: {word}")
                     line = line.replace(item, word)
-                else:
-                    # print(f"item: {item}")
             except Exception as e:
                 print(e)
                 pass
