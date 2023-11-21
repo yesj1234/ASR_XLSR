@@ -28,5 +28,4 @@ pip install sox
 sudo apt update 
 sudo apt install -y ffmpeg 
 pip install -U accelerate 
-pip install wandb
 
