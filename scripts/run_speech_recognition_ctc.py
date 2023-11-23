@@ -660,12 +660,12 @@ def main():
         # load audio
         sample = batch[audio_column_name]
         with warnings.catch_warnings():
-            warnings.filterwarnings('error')
+            warnings.filterwarnings(action = 'error')
             try: 
                 inputs = feature_extractor(sample["array"], sampling_rate=sample["sampling_rate"])
-            except Warning as e:
-                print(e)
-                print(batch["audio"]["path"])
+            except:
+                logger.warning(warnings.showwarning())
+                logger.warning(f'Error File: {batch["audio"]["path"]}')
                 
         batch["input_values"] = inputs.input_values[0]
         batch["input_length"] = len(batch["input_values"])
