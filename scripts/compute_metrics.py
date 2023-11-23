@@ -47,7 +47,7 @@ def main(args):
         batch["target_text"] = re.sub(special_chars, "", batch["target_text"])
         return batch
 
-    raw_dataset = load_dataset("./sample_speech.py", split="validation")
+    raw_dataset = load_dataset(args.load_script, split="validation")
     raw_dataset = raw_dataset.map(remove_special_characters, num_proc = 8, desc="remove special chars")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -91,29 +91,28 @@ def main(args):
             pass
         
     predictions_temp = list(map(lambda x: re.sub(special_chars, "", x), predictions_temp))
+    references = []
     
     with open("empty_files.txt", "w+", encoding="utf-8") as f:
         for path in empty_files:
             f.write(f"{path}\n")
     
-    with open("predictions.txt", "w+", encoding="utf-8") as f:
-        for prediction, reference in zip(predictions_temp, references_temp):
-            f.write(f"{prediction} :: {reference}\n")
-            
-    predictions, references = [], []
-    
     logger.info("***** Simple postprocessing *****")
     for i, pair in tqdm(enumerate(zip(predictions_temp, references_temp))):
         prediction, reference =pair
         prediction = prediction.strip()
-        prediction = " ".join(list(prediction))
+        prediction = "".join(list(prediction)).lower()
         reference = reference.strip()
-        reference = " ".join(list(reference))         
+        reference = "".join(list(reference)).lower()
         if len(prediction) >0 and len(reference) > 0:
             predictions.append(prediction)
             references.append(reference)
         else:
             logger.warning(f"Prediction or reference is empty")
+    
+    with open("predictions.txt", "w+", encoding="utf-8") as f:
+        for prediction, reference in zip(predictions, references):
+            f.write(f"{prediction} :: {reference}\n")
     
     cer = evaluate.load("cer")
     wer = evaluate.load("wer")
@@ -135,6 +134,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_dir", help="fine tuned model dir. relative dir path, or repo_id from huggingface")
+    parser.add_argument("--load_script", help="script used for loading dataset for computing metrics.")
     parser.add_argument("--lang", help="ko ja zh en")
     args = parser.parse_args()
     main(args)
