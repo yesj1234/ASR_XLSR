@@ -28,6 +28,7 @@
 import json
 import os
 import argparse
+import librosa
 from sys import platform
 import numpy as np
 from typing import Dict
@@ -55,6 +56,11 @@ CATEGORY: Dict[str, str] = {
     "중국어(CH)": "중국어"
 }
 
+def _filter_audio(wavname, duration):
+    duration_in_seconds = librosa.get_duration(path = wavname)
+    if duration_in_seconds < duration:
+        return False
+    return True 
 
 def get_necesary_info(json_file):
     def _replace_path(path):
@@ -94,7 +100,10 @@ def get_pairs(dir_path, ratio = 1.0):
                                 try:
                                     path, transcription, json_filename = get_necesary_info(
                                         json_file)
-                                    pairs.append((path, transcription, json_filename))
+                                    if _filter_audio(wavname = os.path.join("/home", "ubuntu", "output", path), duration = 0.1):
+                                        pairs.append((path, transcription, json_filename))
+                                    else:
+                                        pass
                                 except Exception as e:
                                     logger.warning(e)
                                     logger.warning(file)

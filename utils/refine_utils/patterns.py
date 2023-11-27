@@ -21,6 +21,10 @@ ENGLISH_WORD = re.compile(f"[a-zA-Z]+")
 
 DOUBLE_BRACKET_ZH = re.compile(f"\《.+?\》") # 《QQ炫舞》这团团玩的太厉害
 
+question_mark_zh = chr(65311)
+comma_zh = chr(65292)
+exclamation_mark_zh = chr(65281)
+SPECIAL_CHARS_ZH = re.compile(f"[。!,{question_mark_zh}?{exclamation_mark_zh}!{comma_zh},]")
 ####### 일본어 #######
 PARENTHESIS_PAIR_WITH_SLASH_JA = re.compile(f"[\({open_bracket}][^\/{slash}]+?[\){close_bracket}][\/{slash}][\({open_bracket}][^\/{slash}]+?[\){close_bracket}]") # (あそこや)/(あそこだ)
 PARENTHESIS_JA_FIRST_PART = re.compile(f"^[\({open_bracket}].+?[\){close_bracket}]")

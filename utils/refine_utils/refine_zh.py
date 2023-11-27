@@ -5,14 +5,14 @@ from .patterns import (
     PARENTHESIS_PAIR_WITH_SLASH_ZH,
     PARENTHESIS_EXPLAINING_EN,
     ENGLISH_WORD,
-    DOUBLE_BRACKET_ZH
+    DOUBLE_BRACKET_ZH,
+    SPECIAL_CHARS_ZH
 )
 import re 
 
 
 def refine_zh(line):
     line = str(line)
-    
     matched = re.findall(PARENTHESIS_PAIR_ZH, line) # （这个）（这个）
     if matched:
         for item in matched:
@@ -55,7 +55,9 @@ def refine_zh(line):
             word_only = "".join(word_only)
             # print(word_only)
             line = line.replace(item, word_only)
-        
+    matched = re.findall(SPECIAL_CHARS_ZH, line)
+    if matched:
+        line = re.sub(SPECIAL_CHARS_ZH, "", line)
     line = line.split()
     line = " ".join(line)
     return line 
