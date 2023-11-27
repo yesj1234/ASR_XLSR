@@ -38,23 +38,6 @@ logger.setLevel(logging.INFO)
 streamHandler = logging.StreamHandler()
 logger.addHandler(streamHandler)
 
-CATEGORY: Dict[str, str] = {
-    "일상,소통_ca1": "일상,소통",
-    "여행_ca2": "여행",
-    "게임_ca3": "게임",
-    "경제_ca4": "경제",
-    "교육_ca5": "교육",
-    "스포츠_ca6": "스포츠",
-    "라이브커머스_ca7": "라이브커머스",
-    "음식,요리_ca8": "음식,요리",
-    "운동,건강_ca9": '운동,건강',
-    "건강,운동_ca9": '건강,운동',
-    "패션,뷰티_ca10": "패션,뷰티",
-    "한국어(KO)": "한국어",
-    "영어(EN)": "영어",
-    "일본어(JP)": "일본어",
-    "중국어(CH)": "중국어"
-}
 
 def _filter_audio(wavname, duration):
     duration_in_seconds = librosa.get_duration(path = wavname)
@@ -62,22 +45,21 @@ def _filter_audio(wavname, duration):
         return False
     return True 
 
+# "https://objectstorage.ap-seoul-1.oraclecloud.com/n/cnb97trxvnun/b/clive-resource/o/output/중국어_한국어/원천데이터/게임/1232/1232_5191_2.00_8.68.wav",
 def get_necesary_info(json_file):
-    def _replace_path(path):
-        for key in CATEGORY:
-            path = path.replace(CATEGORY[key], key)
-        return path
     try:
         json_data = json.load(json_file)
     except Exception:
         logger.exception("message")
         pass
+
     path = json_data["fi_sound_filepath"].split("/")[-5:]
+    source_lang = path[0].split("_")[0]
+    path.pop(0)
+    path.insert(1, source_lang)
     path = '/'.join(path)
-    path = _replace_path(path)
     
-    transcription = json_data["tc_text"]
-    
+    transcription = json_data["tc_text"]    
     json_filename = json_data["fi_sound_filepath"].split("/")[-3:]
     json_filename = "/".join(json_filename)
     json_filename = json_filename.replace(".wav", ".json")
