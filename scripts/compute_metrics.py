@@ -39,7 +39,7 @@ def speech_file_to_array_fn(batch):
     batch["audio"] = speech_array
     batch["target_text"] = batch["target_text"]
     return batch
-    
+
 def main(args):
     start_time = time()
     special_chars = CHARS_TO_IGNORE_REGEX[args.lang]
@@ -92,7 +92,7 @@ def main(args):
         
     predictions_temp = list(map(lambda x: re.sub(special_chars, "", x), predictions_temp))
     references = []
-    
+    predictions = []
     with open("empty_files.txt", "w+", encoding="utf-8") as f:
         for path in empty_files:
             f.write(f"{path}\n")
@@ -128,6 +128,12 @@ def main(args):
                     """)
     except Exception as e:
         print(e)
+    
+    with open("samples_metrics.txt", mode="w+", encoding = "utf-8") as f:        
+        for pred, ref in zip(predictions, references):
+            cer = cer.compute(predictions = [pred], references = [ref])
+            wer = wer.compute(predictions = [pred], references = [ref])
+            f.write(f"{pred} :: {ref} :: cer: {cer} :: wer: {wer}\n")    
         
     
 
