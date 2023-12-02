@@ -6,6 +6,7 @@ import logging
 import sys
 import re 
 from time import time 
+import traceback
 
 from transformers import (
     Wav2Vec2ForCTC,
@@ -33,6 +34,12 @@ CHARS_TO_IGNORE_REGEX = {
     "en": re.compile("[.,?!~]")
 }
 
+METRIC_MAPPER = {
+    "ko": "cer",
+    "ja": "cer",
+    "zh": "cer",
+    "en": "wer"
+}
 
 def speech_file_to_array_fn(batch):
     speech_array, sampling_rate = librosa.load(batch["file"], sr=16_000)
@@ -47,7 +54,9 @@ def main(args):
         batch["target_text"] = re.sub(special_chars, "", batch["target_text"])
         return batch
 
-    raw_dataset = load_dataset(args.load_script, split="validation")
+    raw_dataset = load_dataset(args.load_script)
+    current_split = list(raw_dataset.data.keys())[0]
+    
     raw_dataset = raw_dataset.map(remove_special_characters, num_proc = 8, desc="remove special chars")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -71,69 +80,48 @@ def main(args):
         with torch.no_grad():
             logits = model(inputs.input_values, attention_mask = inputs.attention_mask).logits
         predicted_ids = torch.argmax(logits, axis = -1)
-        predicted_sentences = processor.batch_decode(predicted_ids)
-        return predicted_sentences
+        predicted_sentence = processor.batch_decode(predicted_ids)
+        batch["predicted_sentence"] = predicted_sentence
+        return batch
     
-    empty_files = []
+    predicted_datasets = vectorized_dataset.map(generate_predictions, 
+                           batched=True, 
+                           batch_size = 10,
+                           remove_columns = ["file", "audio"],
+                           desc="running prediction")[current_split]
     
-    logger.info("***** Running Evaluation *****")
-    for batch in tqdm(vectorized_dataset):
-        try:
-            predicted_sentence = generate_predictions(batch)
-            predicted_sentence = predicted_sentence[0].strip()
-            if len(predicted_sentence) < 1:
-                empty_files.append(batch["file"])
-            else:
-                predictions_temp.append(predicted_sentence)
-                references_temp.append(batch["target_text"])
-        except Exception as e:
-            logger.warning(e)
-            pass
-        
-    predictions_temp = list(map(lambda x: re.sub(special_chars, "", x), predictions_temp))
-    references = []
-    predictions = []
-    with open("empty_files.txt", "w+", encoding="utf-8") as f:
-        for path in empty_files:
-            f.write(f"{path}\n")
+    predictions = predicted_datasets["predicted_sentence"]
+    references = predicted_datasets["target_text"]
     
-    logger.info("***** Simple postprocessing *****")
-    for i, pair in tqdm(enumerate(zip(predictions_temp, references_temp))):
-        prediction, reference =pair
-        prediction = prediction.strip()
-        prediction = "".join(list(prediction)).lower()
-        reference = reference.strip()
-        reference = "".join(list(reference)).lower()
-        if len(prediction) >0 and len(reference) > 0:
-            predictions.append(prediction)
-            references.append(reference)
-        else:
-            logger.warning(f"Prediction or reference is empty")
+    cur_metric = METRIC_MAPPER[args.lang]
+    metric = evaluate.load(cur_metric)
     
     with open("predictions.txt", "w+", encoding="utf-8") as f:
         for prediction, reference in zip(predictions, references):
-            f.write(f"{prediction} :: {reference}\n")
+            score = None
+            try:
+                score = metric.compute(predictions = [prediction], references = [reference])
+                score = round(score, 5)
+            except:
+                print(traceback.print_exc())
+                pass
+            f.write(f"{prediction} :: {reference} :: score={score}\n")
     
-    cer = evaluate.load("cer")
-    wer = evaluate.load("wer")
+    logger.info("filter out empty predictions and references that might possibly exist.")
+    predictions = list(filter(lambda x: len(x)>1, predictions))
+    references = list(filter(lambda x: len(x)>1, references))
+    
     try:
-        cer_score = cer.compute(predictions = predictions, references = references)
-        wer_score = wer.compute(predictions = predictions, references = references)
+        score = metric.compute(predictions = predictions, references = references)
         logger.info(f"""
                     ***** eval metrics *****
-                      eval_samples: {len(predictions)}
-                      eval_cer    : {cer_score}
-                      eval_wer    : {wer_score}
-                      eval_runtime: {time() - start_time} 
+                      eval_samples      : {len(predictions)}
+                      eval_{cur_metric} : {score}
+                      eval_runtime      : {time() - start_time} 
                     """)
-    except Exception as e:
-        print(e)
+    except:
+        print(traceback.print_exc())
     
-    with open("samples_metrics.txt", mode="w+", encoding = "utf-8") as f:        
-        for pred, ref in zip(predictions, references):
-            cer = cer.compute(predictions = [pred], references = [ref])
-            wer = wer.compute(predictions = [pred], references = [ref])
-            f.write(f"{pred} :: {ref} :: cer: {cer} :: wer: {wer}\n")    
         
     
 
