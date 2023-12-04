@@ -24,9 +24,7 @@ RUN python -m pip install torch
 RUN python -m pip install torchaudio 
 RUN python -m pip install numpy 
 RUN python -m pip install evaluate 
-RUN python -m pip install fairseq
 RUN python -m pip install jiwer
-RUN python -m pip install pykakasi
 RUN python -m pip install soundfile
 RUN python -m pip install librosa
 RUN python -m pip install accelerate
