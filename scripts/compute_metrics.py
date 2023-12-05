@@ -113,7 +113,7 @@ def main(args):
     predictions = [pred for i, pred in enumerate(predictions) if i not in empty_indexes]
     references = [ref for i, ref in enumerate(references) if i not in empty_indexes]
     
-    with open("predictions.txt", "w+", encoding="utf-8") as f:
+    with open(f"{current_split}_predictions.txt", "w+", encoding="utf-8") as f:
         for prediction, reference in zip(predictions, references):
             score = None
             try:
