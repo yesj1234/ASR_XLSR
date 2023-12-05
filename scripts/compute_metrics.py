@@ -89,7 +89,7 @@ def main(args):
                            batched=True, 
                            batch_size = 10,
                            remove_columns = ["file", "audio"],
-                           desc="running prediction")[current_split]
+                           desc="running prediction")
     
     predictions = predicted_datasets["predicted_sentence"]
     references = predicted_datasets["target_text"]
