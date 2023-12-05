@@ -24,10 +24,7 @@ class SampleSpeech(datasets.GeneratorBasedBuilder):
     
     """Returns SplitGenerators."""
     VERSION = datasets.Version("0.0.1")
-    def _split_generators(self, dl_manager: DownloadManager):
-        # self.data_dir = os.environ["DATA_DIR"]
-        # self.audio_dir = os.environ["AUDIO_DIR"]
-        
+    def _split_generators(self, dl_manager: DownloadManager):        
         self.data_dir = os.path.join("/home/data/최종검증/dataset/asr_split")
         self.audio_dir = os.path.join("/home/data/최종검증/dataset/")
         return [
