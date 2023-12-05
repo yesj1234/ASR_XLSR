@@ -92,7 +92,9 @@ def main(args):
                            desc="running prediction")
     def post_processing(batch):
         batch["predicted_sentence"] = list(map(lambda x: " ".join(x.split()), batch["predicted_sentence"])) # remove unnecessary white spaces between words if exists. 
+        batch["predicted_sentence"] = list(map(lambda x: x.lower(), batch["predicted_sentence"])) 
         batch["target_text"] = list(map(lambda x: " ".join(x.split()), batch["target_text"]))
+        batch["target_text"] = list(map(lambda x: x.lower(), batch["target_text"]))
         return batch
     
     predicted_datasets = predicted_datasets.map(post_processing, batched = True, batch_size = 1000, desc="simple post processing")
@@ -103,17 +105,6 @@ def main(args):
     cur_metric = METRIC_MAPPER[args.lang]
     metric = evaluate.load(cur_metric)
     
-    with open("predictions.txt", "w+", encoding="utf-8") as f:
-        for prediction, reference in zip(predictions, references):
-            score = None
-            try:
-                score = metric.compute(predictions = [prediction], references = [reference])
-                score = round(score, 5)
-            except:
-                print(traceback.print_exc())
-                pass
-            f.write(f"{prediction} :: {reference} :: score={score}\n")
-    
     empty_indexes = []
     for i, (prediction, reference) in enumerate(zip(predictions, references)):
         if len(prediction.strip()) == 0 or len(reference.strip()) == 0: # filter any possible empty predictions due to some data issues.
@@ -121,7 +112,17 @@ def main(args):
             
     predictions = [pred for i, pred in enumerate(predictions) if i not in empty_indexes]
     references = [ref for i, ref in enumerate(references) if i not in empty_indexes]
-
+    
+    with open("predictions.txt", "w+", encoding="utf-8") as f:
+        for prediction, reference in zip(predictions, references):
+            score = None
+            try:
+                score = metric.compute(predictions = [prediction], references = [reference])
+                score = round(score, 6)
+            except:
+                print(traceback.print_exc())
+                pass
+            f.write(f"{prediction} :: {reference} :: score={score}\n")
     
     try:
         score = metric.compute(predictions = predictions, references = references)
@@ -133,6 +134,7 @@ def main(args):
                     """)
     except:
         print(traceback.print_exc())
+        pass
     
         
     
