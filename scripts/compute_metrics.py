@@ -56,7 +56,8 @@ def main(args):
 
     raw_dataset = load_dataset(args.load_script)
     current_split = list(raw_dataset.data.keys())[0]
-    
+    raw_dataset = raw_dataset[current_split].filter(lambda x: x["duration"] >= 2, 
+                                                    desc = "filter wav file less than 2 seconds.") # filter out wav files that are less than 2 seconds. 
     raw_dataset = raw_dataset.map(remove_special_characters, num_proc = 8, desc="remove special chars")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -107,8 +108,7 @@ def main(args):
                 pass
             f.write(f"{prediction} :: {reference} :: score={score}\n")
     
-    logger.info("filter out empty predictions and references that might possibly exist.")
-    predictions = list(filter(lambda x: len(x)>1, predictions))
+    predictions = list(filter(lambda x: len(x)>1, predictions)) # filter any possible empty predictions due to some data issues.
     references = list(filter(lambda x: len(x)>1, references))
     
     try:
