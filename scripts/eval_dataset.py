@@ -55,7 +55,7 @@ class SampleSpeech(datasets.GeneratorBasedBuilder):
                     yield id_, {
                         "file": os.path.join(self.audio_dir, path),
                         "audio": audio,
-                        "duration": duratioin,
+                        "duration": duration,
                         "target_text": sentence,
                     }
                 
