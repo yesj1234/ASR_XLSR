@@ -1,6 +1,7 @@
 import os
 import datasets 
 import re
+import librosa
 
 from datasets.download.download_manager import DownloadManager
 
@@ -15,6 +16,7 @@ class SampleSpeech(datasets.GeneratorBasedBuilder):
                 {
                     "file": datasets.Value("string"),
                     "target_text": datasets.Value("string"),
+                    "duration": datasets.Value("int64"),
                     "audio": datasets.Audio(sampling_rate=16_000)
                 }
             )
@@ -51,10 +53,11 @@ class SampleSpeech(datasets.GeneratorBasedBuilder):
                         "bytes": audio_data,
                         "sampling_rate": 16_000
                     }
-                    
+                    duration = librosa.get_duration(path=os.path.join(self.audio_dir, path))
                     yield id_, {
                         "file": os.path.join(self.audio_dir, path),
                         "audio": audio,
+                        "duration": duration,
                         "target_text": sentence,
                     }
                 
