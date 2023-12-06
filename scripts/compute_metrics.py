@@ -50,29 +50,33 @@ def speech_file_to_array_fn(batch):
 def main(args):
     start_time = time()
     special_chars = CHARS_TO_IGNORE_REGEX[args.lang]
-    def remove_special_characters(batch):
-        batch["target_text"] = re.sub(special_chars, "", batch["target_text"])
-        return batch
-
+    
+    # 1. load the dataset
     raw_dataset = load_dataset(args.load_script)
     current_split = list(raw_dataset.data.keys())[0]
     raw_dataset = raw_dataset[current_split].filter(lambda x: x["duration"] >= 2, 
                                                     desc = "filter wav file less than 2 seconds.") # filter out wav files that are less than 2 seconds. 
+    # 2. remove special characters that doesn't have any phoneme.
+    def remove_special_characters(batch):
+        batch["target_text"] = re.sub(special_chars, "", batch["target_text"])
+        return batch
     raw_dataset = raw_dataset.map(remove_special_characters, num_proc = 8, desc="remove special chars")
+
+    # 3. load the model, load the feature extractor and tokenizer and put in processor for simple use. 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
     model = Wav2Vec2ForCTC.from_pretrained(args.model_dir).to(device)
     feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(args.model_dir)
     tokenizer = Wav2Vec2CTCTokenizer.from_pretrained(args.model_dir)
     processor = Wav2Vec2Processor(feature_extractor = feature_extractor, tokenizer = tokenizer)
         
-    
+    # 4. vectorize the loaded raw dataset.
     vectorized_dataset = raw_dataset.map(
         speech_file_to_array_fn,
         num_proc=8,
         desc="preprocess datasets"
     )
-    
+
+    # 5. generate predictions in batch.
     def generate_predictions(batch):
         inputs = processor(batch["audio"], sampling_rate=16_000, return_tensors="pt", padding=True).to(device)
         with torch.no_grad():
