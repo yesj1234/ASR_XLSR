@@ -65,10 +65,7 @@ def main(args):
     feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(args.model_dir)
     tokenizer = Wav2Vec2CTCTokenizer.from_pretrained(args.model_dir)
     processor = Wav2Vec2Processor(feature_extractor = feature_extractor, tokenizer = tokenizer)
-    
-    references_temp = []
-    predictions_temp = []
-    
+        
     
     vectorized_dataset = raw_dataset.map(
         speech_file_to_array_fn,
@@ -123,6 +120,18 @@ def main(args):
                 print(traceback.print_exc())
                 pass
             f.write(f"{prediction} :: {reference} :: score={score}\n")
+    
+    # additional post processing if target language is korean.
+    if args.lang == "ko":    
+        for i, (pred, ref) in enumerate(zip(predictions, references)):
+            pred = re.sub("[\s0-9]", "", pred)
+            ref = re.sub("[\s0-9]", "", ref)
+            if pred and ref:
+                predictions[i] = pred
+                references[i] = ref
+            else:
+                predictions[i] = "None"
+                references = "None"
     
     try:
         score = metric.compute(predictions = predictions, references = references)
