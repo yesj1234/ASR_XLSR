@@ -135,7 +135,7 @@ def main(args):
                 references[i] = ref
             else:
                 predictions[i] = "None"
-                references = "None"
+                references[i] = "None"
     
     try:
         score = metric.compute(predictions = predictions, references = references)
