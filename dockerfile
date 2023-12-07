@@ -10,12 +10,7 @@ ENV LC_ALL ko_KR.UTF-8
 RUN apt-get install -y wget sudo 
 RUN sudo apt-get install -y gcc
 RUN sudo apt-get install -y cmake 
-RUN wget https://bitbucket.org/eunjeon/mecab-ko/downloads/mecab-0.996-ko-0.9.2.tar.gz
-RUN tar xvfz mecab-0.996-ko-0.9.2.tar.gz
-WORKDIR /home/mecab-0.996-ko-0.9.2
-RUN ./configure && make
-RUN sudo make install
-RUN sudo ldconfig
+
 RUN sudo apt-get install -y sox
 RUN sudo apt-get install -y ffmpeg
 
@@ -29,9 +24,7 @@ RUN python -m pip install torch
 RUN python -m pip install torchaudio 
 RUN python -m pip install numpy 
 RUN python -m pip install evaluate 
-RUN python -m pip install fairseq
 RUN python -m pip install jiwer
-RUN python -m pip install pykakasi
 RUN python -m pip install soundfile
 RUN python -m pip install librosa
 RUN python -m pip install accelerate
