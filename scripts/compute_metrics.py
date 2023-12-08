@@ -94,6 +94,8 @@ def main(args):
     def post_processing(batch):
         batch["predicted_sentence"] = list(map(lambda x: " ".join(x.split()), batch["predicted_sentence"])) # remove unnecessary white spaces between words if exists. 
         batch["predicted_sentence"] = list(map(lambda x: x.lower(), batch["predicted_sentence"])) 
+        batch["predicted_sentence"] = list(map(lambda x: re.sub(CHARS_TO_IGNORE_REGEX[args.lang], "", x), batch["predicted_sentence"])) # remove special chars
+
         batch["target_text"] = list(map(lambda x: " ".join(x.split()), batch["target_text"]))
         batch["target_text"] = list(map(lambda x: x.lower(), batch["target_text"]))
         return batch
@@ -127,6 +129,30 @@ def main(args):
     
     # additional post processing if target language is korean.
     if args.lang == "ko":    
+        for i, (pred, ref) in enumerate(zip(predictions, references)):
+            pred = re.sub("[\s0-9]", "", pred)
+            ref = re.sub("[\s0-9]", "", ref)
+            if pred and ref:
+                predictions[i] = pred
+                references[i] = ref
+            else:
+                predictions[i] = "None"
+                references[i] = "None"
+
+    # additional post processing if target language is japanese.
+    if args.lang == "ja":    
+        for i, (pred, ref) in enumerate(zip(predictions, references)):
+            pred = re.sub("[\s0-9]", "", pred)
+            ref = re.sub("[\s0-9]", "", ref)
+            if pred and ref:
+                predictions[i] = pred
+                references[i] = ref
+            else:
+                predictions[i] = "None"
+                references[i] = "None"
+                
+    # additional post processing if target language is japanese.
+    if args.lang == "zh":    
         for i, (pred, ref) in enumerate(zip(predictions, references)):
             pred = re.sub("[\s0-9]", "", pred)
             ref = re.sub("[\s0-9]", "", ref)
