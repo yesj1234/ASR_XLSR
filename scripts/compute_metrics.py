@@ -104,6 +104,7 @@ def main(args):
     
     predictions = predicted_datasets["predicted_sentence"]
     references = predicted_datasets["target_text"]
+    paths = predicted_datasts["audio"]["path"]
     
     cur_metric = METRIC_MAPPER[args.lang]
     metric = evaluate.load(cur_metric)
@@ -115,9 +116,10 @@ def main(args):
             
     predictions = [pred for i, pred in enumerate(predictions) if i not in empty_indexes]
     references = [ref for i, ref in enumerate(references) if i not in empty_indexes]
+    paths = [path for i, path in enumerate(paths) if i not in empty_indexes]
     
     with open(f"{current_split}_predictions.txt", "w+", encoding="utf-8") as f:
-        for prediction, reference in zip(predictions, references):
+        for path, prediction, reference in zip(paths, predictions, references):
             score = None
             try:
                 score = metric.compute(predictions = [prediction], references = [reference])
@@ -125,7 +127,7 @@ def main(args):
             except:
                 print(traceback.print_exc())
                 pass
-            f.write(f"{prediction} :: {reference} :: score={score}\n")
+            f.write(f"{path} :: {prediction} :: {reference} :: {score}")
     
     # additional post processing if target language is korean.
     if args.lang == "ko":    
@@ -151,7 +153,7 @@ def main(args):
                 predictions[i] = "None"
                 references[i] = "None"
                 
-    # additional post processing if target language is japanese.
+    # additional post processing if target language is chinese.
     if args.lang == "zh":    
         for i, (pred, ref) in enumerate(zip(predictions, references)):
             pred = re.sub("[\s0-9]", "", pred)
@@ -162,7 +164,19 @@ def main(args):
             else:
                 predictions[i] = "None"
                 references[i] = "None"
-    
+                
+    # additional post processing if target language is english.
+    if args.lang == "en":    
+        for i, (pred, ref) in enumerate(zip(predictions, references)):
+            pred = re.sub("[0-9]", "", pred)
+            ref = re.sub("[0-9]", "", ref)
+            if pred and ref:
+                predictions[i] = pred
+                references[i] = ref
+            else:
+                predictions[i] = "None"
+                references[i] = "None"
+                
     try:
         score = metric.compute(predictions = predictions, references = references)
         logger.info(f"""
