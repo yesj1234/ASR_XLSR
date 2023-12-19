@@ -17,6 +17,9 @@ def tsv_reader(tsv_name):
         yield row
 
 def main(args):
+    copied_files_count = 0
+    error_file_count = 0 
+
     #1. create destination folder 
     if not os.path.exists(args.dest_folder):
         os.mkdir(args.dest_folder)
@@ -31,12 +34,23 @@ def main(args):
             wav_source = os.path.join(args.root_folder, wav_source)
             wav_dest = os.path.join(args.dest_folder, wav_filename_only)
             shutil.copyfile(src=wav_source, dst=wav_dest)
+            copied_files_count += 1
             next_row = next(row_generator)
         except StopIteration:
-            logger.INFO("StopIteration. All rows have been successfully copied.")
+            logger.info("StopIteration. All rows have been successfully copied.")
             next_row = False 
             pass 
+        except Exception as e: 
+            logger.error(e)
+            error_file_count += 1
+            pass
             
+    logger.INfO(f"""
+                ******copy results******
+                files copied to: {os.path.join(args.dest_folder)}
+                copied_files_count: {copied_files_count}
+                error_file_count: {error_file_count} 
+                """)
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
