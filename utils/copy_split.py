@@ -1,14 +1,16 @@
 # copy wav files and json files from validation.tsv and test.tsv file 
 import argparse 
 import os 
-import numpy 
 import logging 
 import shutil 
+import sys
 
 logger = logging.getLogger("CopySplit")
 logging.basicConfig(format='(%(asctime)s) %(levelname)s:%(message)s',
                     datefmt ='%m/%d %I:%M:%S %p',
-                    level=logging.INFO)
+                    level=logging.INFO,
+                    handlers= [logging.StreamHandler(sys.stdout)])
+
 
 def tsv_reader(tsv_name):
     for row in open(tsv_name, "r", encoding="utf-8"):
@@ -20,19 +22,21 @@ def main(args):
         os.mkdir(args.dest_folder)
     #2. read paths of tsv file as generator in case of large file memory issue. 
     row_generator = tsv_reader(args.split_file)
-    #3. copy file from source to destination.
-    try:
-        cur_row = next(row_generator)
-        wav_source = cur_row.split(" :: ")[0]
-        wav_filename_only = wav_source.split("/")[-1]
-        wav_source = os.path.join(args.root_folder, wav_source)
-        wav_dest = os.path.join(args.dest_folder, wav_filename_only)
-        shutil.copyfile(src=wav_source, dst=wav_dest)
-    except StopIteration:
-        logger.error("StopIteration. All rows have been copied")
-        pass        
-    
-    
+    #3. loop through the generator with next flag
+    next_row = next(row_generator)
+    while next_row:
+        try:
+            wav_source = next_row.split(" :: ")[0]
+            wav_filename_only = wav_source.split("/")[-1]
+            wav_source = os.path.join(args.root_folder, wav_source)
+            wav_dest = os.path.join(args.dest_folder, wav_filename_only)
+            shutil.copyfile(src=wav_source, dst=wav_dest)
+            next_row = next(row_generator)
+        except StopIteration:
+            logger.INFO("StopIteration. All rows have been successfully copied.")
+            next_row = False 
+            pass 
+            
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
