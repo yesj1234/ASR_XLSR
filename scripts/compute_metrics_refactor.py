@@ -62,8 +62,9 @@ class SpeechRecognizer:
         return predicted_sentences
 
     def run_recognizer(self, vectorized_dataset):
+        split_name = list(vectorized_dataset.data.keys())[0]
         self.logger.info("***** Running Evaluation *****")
-        for batch in tqdm(vectorized_dataset):
+        for batch in tqdm(vectorized_dataset[split_name]):
             try:
                 predicted_sentence = self.generate_predictions(batch)
                 predicted_sentence = predicted_sentence[0].strip()
@@ -112,7 +113,54 @@ def main(args):
             wer = wer_metric.compute(predictions=[pred], references=[ref])
             f.write(f"{pred} :: {ref} :: cer={cer} :: wer={wer}\n")
 
-    # score as a whole 
+    # additional post processing for each language 
+    if args.lang == "ko":    
+        for i, (pred, ref) in enumerate(zip(recognizer.predictions, recognizer.references)):
+            pred = re.sub("[\s0-9]", "", pred)
+            ref = re.sub("[\s0-9]", "", ref)
+            if pred and ref:
+                recognizer.predictions[i] = pred
+                recognizer.references[i] = ref
+            else:
+                recognizer.predictions[i] = "None"
+                recognizer.references[i] = "None"
+
+    # additional post processing if target language is japanese.
+    if args.lang == "ja":    
+        for i, (pred, ref) in enumerate(zip(recognizer.predictions, recognizer.references)):
+            pred = re.sub("[\s0-9]", "", pred)
+            ref = re.sub("[\s0-9]", "", ref)
+            if pred and ref:
+                recognizer.predictions[i] = pred
+                recognizer.references[i] = ref
+            else:
+                recognizer.predictions[i] = "None"
+                recognizer.references[i] = "None"
+                
+    # additional post processing if target language is chinese.
+    if args.lang == "zh":    
+        for i, (pred, ref) in enumerate(zip(recognizer.predictions, recognizer.references)):
+            pred = re.sub("[\s0-9]", "", pred)
+            ref = re.sub("[\s0-9]", "", ref)
+            if pred and ref:
+                recognizer.predictions[i] = pred
+                recognizer.references[i] = ref
+            else:
+                recognizer.predictions[i] = "None"
+                recognizer.references[i] = "None"
+                
+    # additional post processing if target language is english.
+    if args.lang == "en":    
+        for i, (pred, ref) in enumerate(zip(recognizer.predictions, recognizer.references)):
+            pred = re.sub("[0-9]", "", pred)
+            ref = re.sub("[0-9]", "", ref)
+            if pred and ref:
+                recognizer.predictions[i] = pred
+                recognizer.references[i] = ref
+            else:
+                recognizer.predictions[i] = "None"
+                recognizer.references[i] = "None"
+                
     total_cer = cer_metric.compute(predictions = recognizer.predictions, references = recognizer.references)
     total_wer = wer_metric.compute(predictions = recognizer.predictions, references = recognizer.references)
     recognizer.logger.info(f"""
