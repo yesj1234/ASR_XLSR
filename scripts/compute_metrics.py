@@ -5,6 +5,7 @@ from tqdm import tqdm
 import logging 
 import sys
 import re 
+import os
 from time import time 
 import traceback
 
@@ -63,7 +64,8 @@ def main(args):
     raw_dataset = raw_dataset.map(remove_special_characters, num_proc = 8, desc="remove special chars")
 
     # 3. load the model, load the feature extractor and tokenizer and put in processor for simple use. 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    
     model = Wav2Vec2ForCTC.from_pretrained(args.model_dir).to(device)
     feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(args.model_dir)
     tokenizer = Wav2Vec2CTCTokenizer.from_pretrained(args.model_dir)
@@ -78,7 +80,8 @@ def main(args):
 
     # 5. generate predictions in batch.
     def generate_predictions(batch):
-        inputs = processor(batch["audio"], sampling_rate=16_000, return_tensors="pt", padding=True).to(device)
+        with torch.device("cuda:1"): 
+            inputs = processor(batch["audio"], sampling_rate=16_000, return_tensors="pt", padding=True).to(device)
         with torch.no_grad():
             logits = model(inputs.input_values, attention_mask = inputs.attention_mask).logits
         predicted_ids = torch.argmax(logits, axis = -1)
@@ -104,7 +107,7 @@ def main(args):
     
     predictions = predicted_datasets["predicted_sentence"]
     references = predicted_datasets["target_text"]
-    paths = predicted_datasts["audio"]["path"]
+    paths = predicted_datasets["audio"]["path"]
     
     cur_metric = METRIC_MAPPER[args.lang]
     metric = evaluate.load(cur_metric)
@@ -197,5 +200,6 @@ if __name__ == "__main__":
     parser.add_argument("--model_dir", help="fine tuned model dir. relative dir path, or repo_id from huggingface")
     parser.add_argument("--load_script", help="script used for loading dataset for computing metrics.")
     parser.add_argument("--lang", help="ko ja zh en")
+    parser.add_argument("--cuda_visible_device", default=1)
     args = parser.parse_args()
     main(args)
