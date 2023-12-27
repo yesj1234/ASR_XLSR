@@ -40,11 +40,12 @@ class MyCopier:
             except StopIteration:
                 logger.info("StopIteration. All rows have been successfully iterated.")
                 next_row = False 
-                pass 
+                pass
             except Exception as e: 
                 logger.error(e)
                 self.error_file_count += 1
-                pass
+                next_row = next(row_generator)
+                continue
                 
         logger.info(f"""
                     ******copy results******
