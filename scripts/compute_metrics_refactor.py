@@ -114,7 +114,7 @@ def main(args):
             except Exception as e:
                 logger.warning(e)
                 continue
-            f.write(f"{pred} :: {ref} :: score={score}\n")
+            g.write(f"{pred} :: {ref} :: score={score}\n")
 
     # additional post processing for each language 
     if args.lang == "ko":    
@@ -164,13 +164,12 @@ def main(args):
                 recognizer.predictions[i] = "None"
                 recognizer.references[i] = "None"
                 
-    total_cer = cer_metric.compute(predictions = recognizer.predictions, references = recognizer.references)
-    total_wer = wer_metric.compute(predictions = recognizer.predictions, references = recognizer.references)
+    # score as a whole 
+    total_score = metric.compute(predictions = recognizer.predictions, references = recognizer.references)
     recognizer.logger.info(f"""
     ***** eval metrics *****
     eval_samples: {len(recognizer.predictions)}
-    eval_cer    : {total_cer}
-    eval_wer    : {total_wer}
+    eval_score  : {total_score}
     eval_runtime: {time.time() - start} 
                            """)
     
