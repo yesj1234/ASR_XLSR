@@ -105,13 +105,16 @@ def main(args):
     # write each examples with each scores.
     t = time.localtime()
     current_time = time.strftime("%H%M%S", t)
-    cer_metric = evaluate.load("cer")
-    wer_metric = evaluate.load("wer")
+    metric = evaluate.load(METRIC_MAPPER[args.lang])
     with open(f"sample_metrics_{args.lang}_{current_time}.txt", mode="w+", encoding="utf-8") as g:
         for pred, ref in zip(recognizer.predictions, recognizer.references):
-            cer = cer_metric.compute(predictions=[pred], references=[ref])
-            wer = wer_metric.compute(predictions=[pred], references=[ref])
-            f.write(f"{pred} :: {ref} :: cer={cer} :: wer={wer}\n")
+            score = "None"
+            try:
+                score = metric.compute(predictions=[pred], references=[ref])
+            except Exception as e:
+                logger.warning(e)
+                continue
+            f.write(f"{pred} :: {ref} :: score={score}\n")
 
     # additional post processing for each language 
     if args.lang == "ko":    
