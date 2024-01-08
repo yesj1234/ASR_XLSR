@@ -26,13 +26,13 @@ class SampleSpeech(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.0.1")
     def _split_generators(self, dl_manager: DownloadManager):
         self.data_dir = os.path.join("/home/ubuntu/asr_split")
-        self.audio_dir = os.path.join("/home/ubuntu/3.보완조치완료/1.Training/")
+        self.audio_dir = os.path.join("/home/ubuntu/3.보완조치완료/3.Test/")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
+                name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(self.data_dir, "train_refined.tsv"),
-                    "split": "train"
+                    "filepath": os.path.join(self.data_dir, "test_refined.tsv"),
+                    "split": "test"
                 }
             )
         ]    
