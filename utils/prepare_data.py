@@ -39,7 +39,8 @@ class DataSplitter:
         json_filename = json_filename.replace(".wav", ".json")
 
         return path, transcription, json_filename
-
+    
+    
     def _get_pairs(self, dir_path, ratio=1.0):
         pairs = []
         for root, dirs, files in os.walk(dir_path):

@@ -28,23 +28,20 @@ class FromJson:
         path = "1." + path 
         
         transcription = json_data["tc_text"]
-        json_filename = json_data["fi_sound_filepath"].split("/")[-3:]
-        json_filename = "/".join(json_filename)
-        json_filename = json_filename.replace(".wav", ".json")
-        self.logger.info(path)
-        return path, transcription, json_filename
+        return path, transcription, 
     
     
     def main(self): 
         rows = []
         for _root, _dirs, _files in os.walk(self.args.jsons): 
             if _files: 
+                self.logger.info(os.path.join(_root))
                 for file in _files: 
                     _fname, ext = os.path.splitext(file)
                     if ext == ".json":
                         with open(os.path.join(_root, file), "r", encoding = "utf-8") as cur_json:
-                            path, transcription, json_file_name = self.gen_row(cur_json)  
-                            rows.append((path, transcription, json_file_name))
+                            path, transcription = self.gen_row(cur_json)  
+                            rows.append((path, transcription))
         # check if the dest folder exists 
         _dest_folder = self.args.dest.split("/")[:-1]
         _dest_folder = "/".join(_dest_folder)
@@ -52,7 +49,7 @@ class FromJson:
             os.makedirs(os.path.join(_dest_folder))
         with open(f"{self.args.dest}", "w+", encoding="utf-8") as cur_tsv:
             for row in rows:
-                cur_tsv.write(f"{row[0]} :: {row[1]} :: {row[2]}\n") 
+                cur_tsv.write(f"{row[0]} :: {row[1]}\n") 
 
 if __name__ == "__main__": 
     parser = argparse.ArgumentParser()
