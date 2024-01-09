@@ -1,4 +1,5 @@
 # 1. install gcc and cmake
+sudo apt update
 sudo apt install -y gcc
 sudo apt install -y cmake
 
