@@ -9,7 +9,7 @@
   "mask_feature_length": 10,
   "layerdrop": 0.05,
   "ctc_loss_reduction": "mean",
-  "dataset_name": "./sample_speech.py",
+  "dataset_name": "./train_dataset_sup.py",
   "train_split_name": "train",
   "eval_split_name": "validation",
   "audio_column_name": "audio",
@@ -61,6 +61,6 @@
     "ñ",
     "ó",
     "’",
-    "♪",
+    "♪"
   ]
 }

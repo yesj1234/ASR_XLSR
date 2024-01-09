@@ -29,9 +29,11 @@ class DataSplitter:
 
         path = json_data["fi_sound_filepath"].split("/")[-5:]
         source_lang = path[0].split("_")[0]
+        source_lang = f"1.{source_lang}" if source_lang == "한국어" else f"2.{source_lang}"  
         path.pop(0)
         path.insert(1, source_lang)
         path = '/'.join(path)
+        path = "1." + path 
 
         transcription = json_data["tc_text"]
         json_filename = json_data["fi_sound_filepath"].split("/")[-3:]
@@ -66,30 +68,9 @@ class DataSplitter:
         maximum_index = int(len(pairs) * ratio)
         return pairs[:maximum_index]
 
-    def _split_data(self, pairs):
-        paths = list(map(lambda x: x[0], pairs))
-        transcriptions = list(map(lambda x: x[1], pairs))
-        filenames = list(map(lambda x: x[2], pairs))
-        paths_train, paths_validate, paths_test = np.split(
-            paths, [int(len(paths)*0.8), int(len(paths)*0.9)])
-        transcription_train, transcription_validate, transcription_test = np.split(
-            transcriptions, [int(len(transcriptions)*0.8), int(len(transcriptions)*0.9)])
-        filenames_train, filenames_validate, filenames_test = np.split(
-            filenames, [int(len(filenames)*0.8), int(len(filenames)*0.9)])
-
-        assert len(transcription_train) == len(
-            paths_train), "train split 길이 안맞음."
-        assert len(transcription_test) == len(
-            paths_test), "test split 길이 안맞음."
-        assert len(transcription_validate) == len(
-            paths_validate), "validate split 길이 안맞음."
-        return paths_train, paths_validate, paths_test, \
-            transcription_train, transcription_validate, transcription_test, \
-            filenames_train, filenames_validate, filenames_test
-
     def _write_split_tsv(self, destination, paths, transcriptions):
-        assert isinstance(transcriptions, np.ndarray) == True, "transcriptions should be a np.ndarray"
-        assert isinstance(paths, np.ndarray) == True, "paths should be a np.ndarray"
+        # assert isinstance(transcriptions, np.ndarray) == True, "transcriptions should be a np.ndarray"
+        # assert isinstance(paths, np.ndarray) == True, "paths should be a np.ndarray"
 
         split_filename, ext = os.path.splitext(destination)
         split_filename = split_filename.split("/")[-1]
@@ -102,9 +83,9 @@ class DataSplitter:
                 split.write(f"{paths[i]} :: {transcriptions[i]}\n")
 
     def _write_filename_tsv(self, destination, filenames, paths, transcriptions):
-        assert isinstance(transcriptions, np.ndarray) == True, "transcriptions should be a np.ndarray"
-        assert isinstance(paths, np.ndarray) == True, "paths should be a np.ndarray"
-        assert isinstance(filenames, np.ndarray) == True, "filenames should be a np.ndarray"
+        # assert isinstance(transcriptions, np.ndarray) == True, "transcriptions should be a np.ndarray"
+        # assert isinstance(paths, np.ndarray) == True, "paths should be a np.ndarray"
+        # assert isinstance(filenames, np.ndarray) == True, "filenames should be a np.ndarray"
 
         split_filename, ext = os.path.splitext(destination)
         split_filename = split_filename.split("/")[-1]
@@ -116,50 +97,21 @@ class DataSplitter:
             for i in range(len(transcriptions)-1):
                 split.write(f"{filenames[i]} :: {paths[i]} :: {transcriptions[i]}\n")
 
-    def split(self):
-        np.random.seed(42)
-        os.makedirs(os.path.join(self.args.asr_dest_folder, "asr_split"), exist_ok=True)
-        categories_list = os.listdir(self.args.jsons)
-        categories_list = list(map(lambda x: os.path.join(
-            self.args.jsons, x), categories_list))
-        path_and_transcription_sets = []
-        for category_path in categories_list:
-            pairs = self._get_pairs(category_path, ratio=self.args.ratio)
-            path_and_transcription_sets = [*path_and_transcription_sets, *pairs]
-
-        np.random.shuffle(path_and_transcription_sets)
-
-        paths_train, paths_validate, paths_test, \
-        transcription_train, transcription_validate, transcription_test, \
-        filenames_train, filenames_validate, filenames_test = self._split_data(
-            path_and_transcription_sets)
-
-        tsv_args = {
-            "split_tsv_args": [("train.tsv", paths_train, transcription_train),
-                              ("validation.tsv", paths_validate, transcription_validate),
-                              ("test.tsv", paths_test, transcription_test)],
-            "filename_tsv_args": [("filename_train.tsv", filenames_train, paths_train, transcription_train),
-                                  ("filename_validation.tsv", filenames_validate, paths_validate, transcription_validate),
-                                  ("filename_test.tsv", filenames_test, paths_test, transcription_test)]
-        }
-
-        for args_tuple in tsv_args["split_tsv_args"]:
-            dest_filename, path_list, transcription_list = args_tuple
-
-            self._write_split_tsv(destination=os.path.join(
-                self.args.asr_dest_folder, "asr_split", dest_filename),
-                paths=path_list,
-                transcriptions=transcription_list)
-
-        for args_tuple in tsv_args["filename_tsv_args"]:
-            dest_filename, filename_list, path_list, transcription_list = args_tuple
-
-            self._write_filename_tsv(destination=os.path.join(
-                self.args.asr_dest_folder, "asr_split", dest_filename),
-                filenames=filename_list,
-                paths=path_list,
-                transcriptions=transcription_list)
-
+    def main(self):
+        os.makedirs(os.path.join(self.args.asr_dest_folder), exist_ok=True)
+        pairs = self._get_pairs(self.args.jsons)
+        paths =list(map(lambda x: x[0], pairs))
+        transcriptions =list(map(lambda x: x[1], pairs))
+        filenames =list(map(lambda x: x[2], pairs))
+        self._write_split_tsv(destination= os.path.join(self.args.asr_dest_folder, self.args.split_file),
+                              paths=paths,
+                              transcriptions=transcriptions )
+        self._write_filename_tsv(destination= os.path.join(self.args.asr_dest_folder, self.args.split_file2),
+                                 paths=paths,
+                                 transcriptions=transcriptions,
+                                 filenames=filenames)
+        
+       
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -169,7 +121,9 @@ if __name__ == "__main__":
                         help="folder path that has json files inside of it")
     parser.add_argument("--root_path", help="path to the folder that contains both the '원천데이터' and '라벨링 데이터'")
     parser.add_argument("--ratio", type=float, help="ratio of the data to make splits. defaults to 1", default=1.0)
+    parser.add_argument("--split_file", help="split file . ex. train.tsv / test.tsv / validation.tsv")
+    parser.add_argument("--split_file2", help="split file with json file location. ex. train_filename.tsv / test_filename.tsv / validation_filename.tsv")
     args = parser.parse_args()
 
     splitter = DataSplitter(args)
-    splitter.split()
+    splitter.main()

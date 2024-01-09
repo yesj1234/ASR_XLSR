@@ -24,9 +24,12 @@ def main(args):
                 with open(os.path.join(root, file), "r+", encoding="utf-8") as original_file, open(os.path.join(root, f"{fname}_refined.tsv"), "w+", encoding="utf-8") as refined_file:
                     lines = original_file.readlines()
                     new_lines = []
-                    
                     for line in lines: 
-                        _path, target_text = line.split(" :: ")
+                        try:
+                            _path, target_text = line.split(" :: ")
+                        except ValueError: 
+                            print("ValueError: Not enough value to unpack. Might be an empty line")
+                            pass                        
                         target_text = refine_mapper[args.lang](target_text.strip())
                         new_lines.append(f"{_path} :: {target_text}\n")
                     
