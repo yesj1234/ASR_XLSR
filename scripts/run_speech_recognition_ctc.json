@@ -37,7 +37,7 @@
   "warmup_steps": 1000,
   "save_total_limit": 2,
   "group_by_length": true,
-  "max_duration_in_seconds": 20,
+  "max_duration_in_seconds": 12,
   "min_duration_in_seconds": 2,
   "ddp_timeout": 6000,
   "chars_to_ignore": [
