@@ -39,6 +39,7 @@
   "group_by_length": true,
   "max_duration_in_seconds": 20,
   "min_duration_in_seconds": 2,
+  "ddp_timeout": 6000,
   "chars_to_ignore": [
     ",",
     "?",
