@@ -92,7 +92,6 @@ def main(args):
     predicted_datasets = vectorized_dataset.map(generate_predictions, 
                            batched=True, 
                            batch_size = 10,
-                           remove_columns = ["file", "audio"],
                            desc="running prediction")
     def post_processing(batch):
         batch["predicted_sentence"] = list(map(lambda x: " ".join(x.split()), batch["predicted_sentence"])) # remove unnecessary white spaces between words if exists. 
