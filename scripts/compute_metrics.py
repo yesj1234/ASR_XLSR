@@ -200,6 +200,5 @@ if __name__ == "__main__":
     parser.add_argument("--model_dir", help="fine tuned model dir. relative dir path, or repo_id from huggingface")
     parser.add_argument("--load_script", help="script used for loading dataset for computing metrics.")
     parser.add_argument("--lang", help="ko ja zh en")
-    parser.add_argument("--cuda_visible_device", default=1)
     args = parser.parse_args()
     main(args)
