@@ -106,7 +106,7 @@ def main(args):
     
     predictions = predicted_datasets["predicted_sentence"]
     references = predicted_datasets["target_text"]
-    paths = list(map(lambda x: x["path"], predicted_datasets['audio']))
+    paths = list(map(lambda x: x["path"], raw_dataset['audio']))
 
     
     cur_metric = METRIC_MAPPER[args.lang]
