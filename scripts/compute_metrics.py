@@ -130,7 +130,7 @@ def main(args):
             except:
                 print(traceback.print_exc())
                 pass
-            f.write(f"{path} :: {prediction} :: {reference} :: {score}")
+            f.write(f"{path} :: {prediction} :: {reference} :: {score}\n")
     
     # additional post processing if target language is korean.
     if args.lang == "ko":    
