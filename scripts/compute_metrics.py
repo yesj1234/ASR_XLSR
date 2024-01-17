@@ -53,7 +53,7 @@ def main(args):
     special_chars = CHARS_TO_IGNORE_REGEX[args.lang]
     
     # 1. load the dataset
-    raw_dataset = load_dataset(args.load_script)
+    raw_dataset = load_dataset(args.load_script, trust_remote_code=True)
     current_split = list(raw_dataset.data.keys())[0]
     raw_dataset = raw_dataset[current_split].filter(lambda x: x["duration"] >= 2, 
                                                     desc = "filter wav file less than 2 seconds.") # filter out wav files that are less than 2 seconds. 
