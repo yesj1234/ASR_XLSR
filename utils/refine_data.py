@@ -25,11 +25,11 @@ def main(args):
                     lines = original_file.readlines()
                     new_lines = []
                     for line in lines: 
-                        try:
+                        try: 
                             _path, target_text = line.split(" :: ")
-                        except ValueError: 
-                            print("ValueError: Not enough value to unpack. Might be an empty line")
-                            pass                        
+                        except ValueError:
+                            print("not enough values to unpack. Might be an empty line")
+                            pass
                         target_text = refine_mapper[args.lang](target_text.strip())
                         new_lines.append(f"{_path} :: {target_text}\n")
                     
