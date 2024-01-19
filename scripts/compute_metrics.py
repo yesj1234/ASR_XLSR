@@ -126,7 +126,7 @@ def main(args):
             score = None
             try:
                 score = metric.compute(predictions = [prediction], references = [reference])
-                scores.append(score)
+                scores.append(round(score, 2)
                 score = round(score, 6)
             except:
                 print(traceback.print_exc())
