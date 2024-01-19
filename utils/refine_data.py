@@ -15,8 +15,11 @@ refine_mapper = {
     "ja": refine_ja
 }
 
-files_to_refine = ["train", "test", "validation"]
+def list_of_strings(arg):
+    return arg.split(',')
+
 def main(args):
+    files_to_refine = args.files_to_refine
     for root, _dir, files in os.walk(args.tsv_splits_dir):
         for file in files:
             fname, ext = os.path.splitext(file)
@@ -40,5 +43,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--tsv_splits_dir", help="asr_splits 디렉토리 경로")
     parser.add_argument("--lang", help="ko, en, ja, zh")
+    parser.add_argument("--files_to_refine", types=list_of_strings)
     args = parser.parse_args()
     main(args)

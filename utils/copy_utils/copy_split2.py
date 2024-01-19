@@ -26,10 +26,10 @@ def main(args):
         for line in lines: 
             audio, prediction, reference, score = line.split(" :: ")
             # /home/ubuntu/3.보완조치완료/3.Test/1.원천데이터/2.중국어/패션,뷰티/11958/11958_981197_355.00_357.00.wav
-            audio_filename = audio.split("/")[-1]
             score = float(score[:-2])
+            audio_filename = audio.split("/")[-1]
             if score < float(args.max_score):
-                new_lines.append((audio_filename, prediction, reference, score))
+                new_lines.append((audio, prediction, reference, score))
                 if args.do_copy_wav:
                     shutil.copyfile(src=audio, dst=os.path.join(args.wav_destination, audio_filename))
                 count += 1
@@ -38,6 +38,7 @@ def main(args):
         for new_line in new_lines:
             t.write(f"{new_line[0]} :: {new_line[1]} :: {new_line[2]} :: {new_line[3]}\n")    
     logging.info(f"""
+                filename: {args.txt_destination}
                 total: {len(lines)}
                 copied: {count}
                 score_mean: {sum(scores) / count}
