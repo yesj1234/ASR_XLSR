@@ -64,7 +64,7 @@ def main(args):
     raw_dataset = raw_dataset.map(remove_special_characters, num_proc = 8, desc="remove special chars")
 
     # 3. load the model, load the feature extractor and tokenizer and put in processor for simple use. 
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     model = Wav2Vec2ForCTC.from_pretrained(args.model_dir).to(device)
     feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(args.model_dir)
@@ -80,7 +80,7 @@ def main(args):
 
     # 5. generate predictions in batch.
     def generate_predictions(batch):
-        with torch.device("cuda:1"): 
+        with torch.device("cuda"): 
             inputs = processor(batch["audio"], sampling_rate=16_000, return_tensors="pt", padding=True).to(device)
         with torch.no_grad():
             logits = model(inputs.input_values, attention_mask = inputs.attention_mask).logits
@@ -120,77 +120,28 @@ def main(args):
     predictions = [pred for i, pred in enumerate(predictions) if i not in empty_indexes]
     references = [ref for i, ref in enumerate(references) if i not in empty_indexes]
     paths = [path for i, path in enumerate(paths) if i not in empty_indexes]
-    
+    scores = []
     with open(f"{current_split}_predictions.txt", "w+", encoding="utf-8") as f:
         for path, prediction, reference in zip(paths, predictions, references):
             score = None
             try:
                 score = metric.compute(predictions = [prediction], references = [reference])
                 score = round(score, 6)
+                scores.append(score)
             except:
                 print(traceback.print_exc())
                 pass
             f.write(f"{path} :: {prediction} :: {reference} :: {score}\n")
     
-    # additional post processing if target language is korean.
-    if args.lang == "ko":    
-        for i, (pred, ref) in enumerate(zip(predictions, references)):
-            pred = re.sub("[\s0-9]", "", pred)
-            ref = re.sub("[\s0-9]", "", ref)
-            if pred and ref:
-                predictions[i] = pred
-                references[i] = ref
-            else:
-                predictions[i] = "None"
-                references[i] = "None"
+    
 
-    # additional post processing if target language is japanese.
-    if args.lang == "ja":    
-        for i, (pred, ref) in enumerate(zip(predictions, references)):
-            pred = re.sub("[\s0-9]", "", pred)
-            ref = re.sub("[\s0-9]", "", ref)
-            if pred and ref:
-                predictions[i] = pred
-                references[i] = ref
-            else:
-                predictions[i] = "None"
-                references[i] = "None"
-                
-    # additional post processing if target language is chinese.
-    if args.lang == "zh":    
-        for i, (pred, ref) in enumerate(zip(predictions, references)):
-            pred = re.sub("[\s0-9]", "", pred)
-            ref = re.sub("[\s0-9]", "", ref)
-            if pred and ref:
-                predictions[i] = pred
-                references[i] = ref
-            else:
-                predictions[i] = "None"
-                references[i] = "None"
-                
-    # additional post processing if target language is english.
-    if args.lang == "en":    
-        for i, (pred, ref) in enumerate(zip(predictions, references)):
-            pred = re.sub("[0-9]", "", pred)
-            ref = re.sub("[0-9]", "", ref)
-            if pred and ref:
-                predictions[i] = pred
-                references[i] = ref
-            else:
-                predictions[i] = "None"
-                references[i] = "None"
-                
-    try:
-        score = metric.compute(predictions = predictions, references = references)
-        logger.info(f"""
-                    ***** eval metrics *****
-                      eval_samples      : {len(predictions)}
-                      eval_{cur_metric} : {score}
-                      eval_runtime      : {time() - start_time} 
-                    """)
-    except:
-        print(traceback.print_exc())
-        pass
+    logger.info(f"""
+                ***** eval metrics *****
+                    eval_samples      : {len(predictions)}
+                    eval_{cur_metric} : {float(sum(scores)) / int(len(scores))}
+                    eval_runtime      : {time() - start_time} 
+                """)
+    
     
         
     
