@@ -120,25 +120,31 @@ def main(args):
     predictions = [pred for i, pred in enumerate(predictions) if i not in empty_indexes]
     references = [ref for i, ref in enumerate(references) if i not in empty_indexes]
     paths = [path for i, path in enumerate(paths) if i not in empty_indexes]
-    scores = []
+    
     with open(f"{current_split}_predictions.txt", "w+", encoding="utf-8") as f:
         for path, prediction, reference in zip(paths, predictions, references):
             score = None
             try:
                 score = metric.compute(predictions = [prediction], references = [reference])
-                scores.append(score)
-                score = round(score, 6)[[]]
+                score = round(score, 6)
             except:
                 print(traceback.print_exc())
-                pass
+                
             f.write(f"{path} :: {prediction} :: {reference} :: {score}\n")
-    
-    
+    total_score = 0
+    count = 0
+    with open(f"{current_split}_predictions.txt", "r", encoding="utf-8") as f:
+        lines = f.readlines()
+        for line in lines:
+            _, _, _, score = line.split(" :: ")
+            score = round(float(score[:-2]), 2)
+            total_score += score
+            count += 1    
 
     logger.info(f"""
                 ***** eval metrics *****
                     eval_samples      : {len(predictions)}
-                    eval_{cur_metric} : {float(sum(scores)) / int(len(scores))}
+                    eval_{cur_metric} : {total_score / count}
                     eval_runtime      : {time() - start_time} 
                 """)
     
