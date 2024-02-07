@@ -43,6 +43,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--tsv_splits_dir", help="asr_splits 디렉토리 경로")
     parser.add_argument("--lang", help="ko, en, ja, zh")
-    parser.add_argument("--files_to_refine", types=list_of_strings)
+    parser.add_argument("--files_to_refine", type=list_of_strings)
     args = parser.parse_args()
     main(args)
