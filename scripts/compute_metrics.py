@@ -137,13 +137,15 @@ def main(args):
         predictions = list(map(normalize_japanese, predictions))    
         references = list(map(normalize_japanese, references))
         
-            
+    scores = []        
     with open(f"{current_split}_predictions.txt", "w+", encoding="utf-8") as f:
         for path, prediction, reference in zip(paths, predictions, references):
             score = None
             try:
                 score = metric.compute(predictions = [prediction], references = [reference])
+                scores.append(score)
             except:
+                scores.append(score)
                 print(traceback.print_exc())
                 
             f.write(f"{path} :: {prediction} :: {reference} :: {score}\n")
@@ -151,7 +153,12 @@ def main(args):
     logger.info(f"""
 {pformat(LOG_OBJECT, sort_dicts=False)}
                 """)
-
+    df = pd.DataFrame()
+    COLUMNS = ["path", "prediction", "reference", "score"]
+    df.insert(len(df.columns), column=COLUMNS[0], value=paths)
+    df.insert(len(df.columns), column=COLUMNS[1], value=predictions)
+    df.insert(len(df.columns), column=COLUMNS[2], value=references)
+    df.insert(len(df.columns), column=COLUMNS[3], value=scores)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_dir", help="fine tuned model dir. relative dir path, or repo_id from huggingface")
