@@ -16,7 +16,7 @@ class SampleSpeech(datasets.GeneratorBasedBuilder):
                 {
                     "file": datasets.Value("string"),
                     "target_text": datasets.Value("string"),
-                    "duration": datasets.Value("int"),
+                    "duration": datasets.Value("float"),
                     "audio": datasets.Audio(sampling_rate=16_000)
                 }
             )
@@ -25,8 +25,8 @@ class SampleSpeech(datasets.GeneratorBasedBuilder):
     """Returns SplitGenerators."""
     VERSION = datasets.Version("0.0.1")
     def _split_generators(self, dl_manager: DownloadManager):
-        self.data_dir = os.path.join("/home/data/최종검증/dataset/asr_split")
-        self.audio_dir = os.path.join("/home/data/최종검증/dataset/")
+        self.data_dir = os.path.join("/home/ubuntu/asr_split")
+        self.audio_dir = os.path.join("/home/ubuntu/3.보완조치완료/1.Training/")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,

@@ -1,11 +1,11 @@
 import os
 import datasets 
 import re
-import librosa
+import librosa 
 
 from datasets.download.download_manager import DownloadManager
 
-_DESCRIPTION = "data for computing CER / WER metrics."
+_DESCRIPTION = "sample data for Cycle 0"
 
 class SampleSpeech(datasets.GeneratorBasedBuilder): 
     
@@ -16,7 +16,7 @@ class SampleSpeech(datasets.GeneratorBasedBuilder):
                 {
                     "file": datasets.Value("string"),
                     "target_text": datasets.Value("string"),
-                    "duration": datasets.Value("int64"),
+                    "duration": datasets.Value("float"),
                     "audio": datasets.Audio(sampling_rate=16_000)
                 }
             )
@@ -24,9 +24,9 @@ class SampleSpeech(datasets.GeneratorBasedBuilder):
     
     """Returns SplitGenerators."""
     VERSION = datasets.Version("0.0.1")
-    def _split_generators(self, dl_manager: DownloadManager):        
-        self.data_dir = os.path.join("/home/data/최종검증/dataset/asr_split")
-        self.audio_dir = os.path.join("/home/data/최종검증/dataset/")
+    def _split_generators(self, dl_manager: DownloadManager):
+        self.data_dir = os.path.join("/home/ubuntu/asr_split")
+        self.audio_dir = os.path.join("/home/ubuntu/3.보완조치완료/3.Test/")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -54,7 +54,7 @@ class SampleSpeech(datasets.GeneratorBasedBuilder):
                     yield id_, {
                         "file": os.path.join(self.audio_dir, path),
                         "audio": audio,
-                        "duration": duration,
                         "target_text": sentence,
+                        "duration": duration
                     }
                 
