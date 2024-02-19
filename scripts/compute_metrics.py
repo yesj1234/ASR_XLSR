@@ -149,7 +149,7 @@ def main(args):
                 print(traceback.print_exc())
                 
             f.write(f"{path} :: {prediction} :: {reference} :: {score}\n")
-    LOG_OBJECT["score"] = metric.compute(predictions=predictions, references=references)
+    LOG_OBJECT["score"] = min(metric.compute(predictions=predictions, references=references), (sum(scores)/len(scores)))
     logger.info(f"""
 {pformat(LOG_OBJECT, sort_dicts=False)}
                 """)
