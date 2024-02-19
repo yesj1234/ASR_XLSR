@@ -1,6 +1,4 @@
 import argparse
-import torch
-import librosa
 from tqdm import tqdm
 import logging 
 import sys
@@ -8,7 +6,10 @@ import re
 import os
 from time import time 
 import traceback
+from pprint import pformat 
 
+import torch
+import librosa
 from transformers import (
     Wav2Vec2ForCTC,
     Wav2Vec2FeatureExtractor,
@@ -17,6 +18,10 @@ from transformers import (
 )
 from datasets import load_dataset 
 import evaluate
+import jaconv
+from fugashi import Tagger
+import pandas as pd
+
 
 logger = logging.getLogger(__name__)
  # Setup logging
@@ -49,28 +54,30 @@ def speech_file_to_array_fn(batch):
     return batch
 
 def main(args):
-    start_time = time()
     special_chars = CHARS_TO_IGNORE_REGEX[args.lang]
-    
+    LOG_OBJECT = {} 
+    LOG_OBJECT["MODEL"] = args.model_dir
+    LOG_OBJECT["LANGUAGE"] = args.lang
     # 1. load the dataset
     raw_dataset = load_dataset(args.load_script, trust_remote_code=True)
     current_split = list(raw_dataset.data.keys())[0]
+    LOG_OBJECT["RAW_DATASET_SIZE"] = len(raw_dataset[current_split])
     raw_dataset = raw_dataset[current_split].filter(lambda x: x["duration"] >= 2, 
                                                     desc = "filter wav file less than 2 seconds.") # filter out wav files that are less than 2 seconds. 
+    LOG_OBJECT["FILTERED_DATASET_SIZE"] = len(raw_dataset)
     # 2. remove special characters that doesn't have any phoneme.
     def remove_special_characters(batch):
         batch["target_text"] = re.sub(special_chars, "", batch["target_text"])
         return batch
-    raw_dataset = raw_dataset.map(remove_special_characters, num_proc = 8, desc="remove special chars")
+    raw_dataset = raw_dataset.map(remove_special_characters, num_proc=8, desc="remove special chars")
 
     # 3. load the model, load the feature extractor and tokenizer and put in processor for simple use. 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
+    LOG_OBJECT["DEVICE"] = device
     model = Wav2Vec2ForCTC.from_pretrained(args.model_dir).to(device)
     feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(args.model_dir)
     tokenizer = Wav2Vec2CTCTokenizer.from_pretrained(args.model_dir)
     processor = Wav2Vec2Processor(feature_extractor = feature_extractor, tokenizer = tokenizer)
-        
     # 4. vectorize the loaded raw dataset.
     vectorized_dataset = raw_dataset.map(
         speech_file_to_array_fn,
@@ -80,14 +87,13 @@ def main(args):
 
     # 5. generate predictions in batch.
     def generate_predictions(batch):
-        with torch.device("cuda"): 
-            inputs = processor(batch["audio"], sampling_rate=16_000, return_tensors="pt", padding=True).to(device)
         with torch.no_grad():
+            inputs = processor(batch["audio"], sampling_rate=16_000, return_tensors="pt", padding=True).to(device)
             logits = model(inputs.input_values, attention_mask = inputs.attention_mask).logits
-        predicted_ids = torch.argmax(logits, axis = -1)
-        predicted_sentence = processor.batch_decode(predicted_ids)
-        batch["predicted_sentence"] = predicted_sentence
-        return batch
+            predicted_ids = torch.argmax(logits, axis = -1)
+            predicted_sentence = processor.batch_decode(predicted_ids)
+            batch["predicted_sentence"] = predicted_sentence
+            return batch
     
     predicted_datasets = vectorized_dataset.map(generate_predictions, 
                            batched=True, 
@@ -107,7 +113,6 @@ def main(args):
     predictions = predicted_datasets["predicted_sentence"]
     references = predicted_datasets["target_text"]
     paths = list(map(lambda x: x["path"], raw_dataset['audio']))
-
     
     cur_metric = METRIC_MAPPER[args.lang]
     metric = evaluate.load(cur_metric)
@@ -120,37 +125,32 @@ def main(args):
     predictions = [pred for i, pred in enumerate(predictions) if i not in empty_indexes]
     references = [ref for i, ref in enumerate(references) if i not in empty_indexes]
     paths = [path for i, path in enumerate(paths) if i not in empty_indexes]
-    
+    LOG_OBJECT["PREDICTIONS"] = len(predictions)
+    LOG_OBJECT["REFERENCES"] = len(references)
+    if args.lang == "ja":
+        # Normalization.
+        tagger = Tagger("-Owakati")
+        def normalize_japanese(text):
+            text = tagger.parse(text)
+            text = jaconv.kata2hira(text)
+            return text         
+        predictions = list(map(normalize_japanese, predictions))    
+        references = list(map(normalize_japanese, references))
+        
+            
     with open(f"{current_split}_predictions.txt", "w+", encoding="utf-8") as f:
         for path, prediction, reference in zip(paths, predictions, references):
             score = None
             try:
                 score = metric.compute(predictions = [prediction], references = [reference])
-                score = round(score, 6)
             except:
                 print(traceback.print_exc())
                 
             f.write(f"{path} :: {prediction} :: {reference} :: {score}\n")
-    total_score = 0
-    count = 0
-    with open(f"{current_split}_predictions.txt", "r", encoding="utf-8") as f:
-        lines = f.readlines()
-        for line in lines:
-            _, _, _, score = line.split(" :: ")
-            score = round(float(score[:-2]), 2)
-            total_score += score
-            count += 1    
-
+    LOG_OBJECT["score"] = metric.compute(predictions=predictions, references=references)
     logger.info(f"""
-                ***** eval metrics *****
-                    eval_samples      : {len(predictions)}
-                    eval_{cur_metric} : {total_score / count}
-                    eval_runtime      : {time() - start_time} 
+{pformat(LOG_OBJECT, sort_dicts=False)}
                 """)
-    
-    
-        
-    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
