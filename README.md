@@ -5,29 +5,29 @@
 1. **_prepare_data.py_**
 
 ```bash
-python3 prepare_data.py --asr_dest_folder /path/to/the/destination/folder --jsons /path/to/the/folder/containing/jsons --ratio 1
-e.g.
-python3 prepare_data.py --asr_dest_folder ./asr_split --jsons $SPLITS_DIR
+python3 prepare_data.py \
+--asr_dest_folder path/to/destination/folder \
+--jsons path/to/jsons/folder \
+--root_path path/to/wavfile/folder \
+--ratio 1 \
+--split_file train.tsv \
+--split_file2 train_filename.tsv 
 ```
 
 2. **_refine_data.py_**
 
-Wav2Vec2 xls-r model
-
 ```bash
-python3 refine_data.py --tsv_splits_dir /path/to/the/tsv/splits --lang lang_code # ko en ja zh
-e.g.
-python3 refine_data.py --tsv_splits_dir ../asr_split --lang ko
+python3 refine_data.py \
+--tsv_splits_dir path/to/tsv/folders \   
+--lang \ 
+--files_to_refine 
 ```
 
-3.change the **_self.data_dir_** and **_self.audio_dir_** in sample_speech.py to the right path
+3.change the **_self.data_dir_** and **_self.audio_dir_** in audio loading python script. 
 
 ```python
-def _split_generators(self, dl_manager: DownloadManager):
-        # self.data_dir = os.environ["DATA_DIR"]
-        # self.audio_dir = os.environ["AUDIO_DIR"]
-        
-        self.data_dir = os.path.join("../../", '영어(EN)_한국어(KO)', "asr_split") # set the asr_split path generated from prepare_data.py
+def _split_generators(self, dl_manager: DownloadManager):        
+        self.data_dir = os.path.join("../../", "asr_split") # set the asr_split path generated from prepare_data.py
         self.audio_dir = os.path.join("../..") 
 ```
 
