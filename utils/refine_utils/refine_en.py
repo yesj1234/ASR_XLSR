@@ -30,4 +30,5 @@ def refine_en(line):
     
     line = line.split()
     line = " ".join(line)
+    line = line.lower()
     return line 
