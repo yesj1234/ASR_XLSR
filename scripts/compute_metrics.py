@@ -159,10 +159,12 @@ def main(args):
     df.insert(len(df.columns), column=COLUMNS[1], value=predictions)
     df.insert(len(df.columns), column=COLUMNS[2], value=references)
     df.insert(len(df.columns), column=COLUMNS[3], value=scores)
+    df.to_csv(args.csv_name, index=False)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_dir", help="fine tuned model dir. relative dir path, or repo_id from huggingface")
     parser.add_argument("--load_script", help="script used for loading dataset for computing metrics.")
     parser.add_argument("--lang", help="ko ja zh en")
+    parser.add_argument("--csv_name")
     args = parser.parse_args()
     main(args)
