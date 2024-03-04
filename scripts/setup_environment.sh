@@ -24,6 +24,9 @@ pip install jiwer
 pip install soundfile 
 pip install librosa 
 pip install evaluate
+pip install jaconv
+pip install sacrebleu[ja]
+pip install fugashi
 sudo apt-get install -y sox 
 pip install sox 
 sudo apt update 
