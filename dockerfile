@@ -28,4 +28,7 @@ RUN python -m pip install jiwer
 RUN python -m pip install soundfile
 RUN python -m pip install librosa
 RUN python -m pip install accelerate
+RUN python -m pip install fugashi 
+RUN python -m pip install sacrebleu[ja]
+RUN python -m pip install jaconv
 WORKDIR /home
