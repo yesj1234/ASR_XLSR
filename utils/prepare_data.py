@@ -20,6 +20,10 @@ class DataSplitter:
             return False
         return True
 
+    # 보완조치 과정에서 수정 작업이 완료되지 않은 파일들은 전사문을 "."으로 처리.
+    def _filter_empty(self, text):
+        return text != "."
+    
     def _get_necessary_info(self, json_file):
         try:
             json_data = json.load(json_file)
@@ -57,7 +61,7 @@ class DataSplitter:
                                     try:
                                         path, transcription, json_filename = self._get_necessary_info(
                                             json_file)
-                                        if self._filter_audio(wavname=os.path.join(self.args.root_path, path), duration=0.1):
+                                        if self._filter_audio(wavname=os.path.join(self.args.root_path, path), duration=0.1) and self._filter_empty(transcription):
                                             pairs.append((path, transcription, json_filename))
                                         else:
                                             pass
