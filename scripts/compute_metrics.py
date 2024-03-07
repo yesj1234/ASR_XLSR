@@ -162,8 +162,11 @@ def main(args):
                 
             f.write(f"{path} :: {prediction} :: {reference} :: {score}\n")
     
-    LOG_OBJECT["score"] = min(metric.compute(predictions=predictions, references=references), (sum(scores)/len(scores)))
-    
+    try:
+        LOG_OBJECT["score"] = min(metric.compute(predictions=predictions, references=references), (sum(scores)/len(scores)))
+    except Exception as e:
+        print(e)
+        
     logger.info(f"""
 {pformat(LOG_OBJECT, sort_dicts=False)}
                 """)
