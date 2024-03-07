@@ -1,5 +1,4 @@
 import argparse
-from tqdm import tqdm
 import logging 
 import sys
 import re 
@@ -10,18 +9,19 @@ from pprint import pformat
 
 import torch
 import librosa
+import pandas as pd
+from datasets import load_dataset 
 from transformers import (
     Wav2Vec2ForCTC,
     Wav2Vec2FeatureExtractor,
     Wav2Vec2Processor,
     Wav2Vec2CTCTokenizer
 )
-from datasets import load_dataset 
+
 import evaluate
 import jaconv
 from fugashi import Tagger
-import pandas as pd
-
+from tn.chinese.normalizer import Normalization
 
 logger = logging.getLogger(__name__)
  # Setup logging
@@ -136,6 +136,18 @@ def main(args):
             return text         
         predictions = list(map(normalize_japanese, predictions))    
         references = list(map(normalize_japanese, references))
+    
+    if args.lang == "zh":
+        chinese_normalizer = Normalization()
+        def normalize_chinese(text):
+            text = chinese_normalizer.normalize(text)
+            text = text.strip()
+            if text == "":
+                text = "."
+            return text
+        
+        predictions = list(map(normalize_chinese, predictions))
+        references = list(map(normalize_chinese, references))
         
     scores = []        
     with open(f"{current_split}_predictions.txt", "w+", encoding="utf-8") as f:
@@ -149,10 +161,13 @@ def main(args):
                 print(traceback.print_exc())
                 
             f.write(f"{path} :: {prediction} :: {reference} :: {score}\n")
+    
     LOG_OBJECT["score"] = min(metric.compute(predictions=predictions, references=references), (sum(scores)/len(scores)))
+    
     logger.info(f"""
 {pformat(LOG_OBJECT, sort_dicts=False)}
                 """)
+    
     df = pd.DataFrame()
     COLUMNS = ["path", "prediction", "reference", "score"]
     df.insert(len(df.columns), column=COLUMNS[0], value=paths)
