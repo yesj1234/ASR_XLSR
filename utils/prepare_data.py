@@ -22,7 +22,7 @@ class DataSplitter:
 
     # 보완조치 과정에서 수정 작업이 완료되지 않은 파일들은 전사문을 "."으로 처리.
     def _filter_empty(self, text):
-        return text != "."
+        return text.strip() != "."
     
     def _get_necessary_info(self, json_file):
         try:
