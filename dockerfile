@@ -31,4 +31,5 @@ RUN python -m pip install accelerate
 RUN python -m pip install fugashi 
 RUN python -m pip install sacrebleu[ja]
 RUN python -m pip install jaconv
+RUN python -m pip install WeTextProcessing
 WORKDIR /home
