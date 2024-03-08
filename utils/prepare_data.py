@@ -8,23 +8,26 @@ import logging
 
 class DataSplitter:
     def __init__(self, args):
-        self.args = args
+        self.asr_dest_folder: str = args.asr_dest_folder 
+        self.jsons: str = args.jsons 
+        self.root_path: str = args.root_path 
+        self.split_file: str = args.split_file 
+        self.split_file: str = args.split_file2 
+        
         self.logger = logging.getLogger("splitting_logger")
         self.logger.setLevel(logging.INFO)
         streamHandler = logging.StreamHandler()
         self.logger.addHandler(streamHandler)
 
-    def _filter_audio(self, wavname, duration):
+    def filter_audio(self, wavname, duration):
         duration_in_seconds = librosa.get_duration(path=wavname)
-        if duration_in_seconds < duration:
-            return False
-        return True
+        return duration_in_seconds >= duration
 
     # 보완조치 과정에서 수정 작업이 완료되지 않은 파일들은 전사문을 "."으로 처리.
-    def _filter_empty(self, text):
+    def filter_empty(self, text):
         return text.strip() != "."
     
-    def _get_necessary_info(self, json_file):
+    def get_necessary_info(self, json_file):
         try:
             json_data = json.load(json_file)
         except Exception:
@@ -46,7 +49,7 @@ class DataSplitter:
 
         return path, transcription, json_filename
 
-    def _get_pairs(self, dir_path, ratio=1.0):
+    def get_pairs(self, dir_path, ratio=1.0):
         pairs = []
         for root, dirs, files in os.walk(dir_path):
             if dirs:
@@ -59,9 +62,9 @@ class DataSplitter:
                             if ext == ".json":
                                 with open(os.path.join(root, dir, file), "r", encoding="utf-8") as json_file:
                                     try:
-                                        path, transcription, json_filename = self._get_necessary_info(
+                                        path, transcription, json_filename = self.get_necessary_info(
                                             json_file)
-                                        if self._filter_audio(wavname=os.path.join(self.args.root_path, path), duration=0.1) and self._filter_empty(transcription):
+                                        if self.filter_audio(wavname=os.path.join(self.root_path, path), duration=0.1) and self.filter_empty(transcription):
                                             pairs.append((path, transcription, json_filename))
                                         else:
                                             pass
@@ -72,10 +75,7 @@ class DataSplitter:
         maximum_index = int(len(pairs) * ratio)
         return pairs[:maximum_index]
 
-    def _write_split_tsv(self, destination, paths, transcriptions):
-        # assert isinstance(transcriptions, np.ndarray) == True, "transcriptions should be a np.ndarray"
-        # assert isinstance(paths, np.ndarray) == True, "paths should be a np.ndarray"
-
+    def write_split_tsv(self, destination, paths, transcriptions):
         split_filename, ext = os.path.splitext(destination)
         split_filename = split_filename.split("/")[-1]
         self.logger.info(f"""
@@ -86,11 +86,7 @@ class DataSplitter:
             for i in range(len(transcriptions)-1):
                 split.write(f"{paths[i]} :: {transcriptions[i]}\n")
 
-    def _write_filename_tsv(self, destination, filenames, paths, transcriptions):
-        # assert isinstance(transcriptions, np.ndarray) == True, "transcriptions should be a np.ndarray"
-        # assert isinstance(paths, np.ndarray) == True, "paths should be a np.ndarray"
-        # assert isinstance(filenames, np.ndarray) == True, "filenames should be a np.ndarray"
-
+    def write_filename_tsv(self, destination, filenames, paths, transcriptions):
         split_filename, ext = os.path.splitext(destination)
         split_filename = split_filename.split("/")[-1]
         self.logger.info(f"""
@@ -102,15 +98,15 @@ class DataSplitter:
                 split.write(f"{filenames[i]} :: {paths[i]} :: {transcriptions[i]}\n")
 
     def main(self):
-        os.makedirs(os.path.join(self.args.asr_dest_folder), exist_ok=True)
-        pairs = self._get_pairs(self.args.jsons)
+        os.makedirs(os.path.join(self.asr_dest_folder), exist_ok=True)
+        pairs = self.get_pairs(self.jsons)
         paths =list(map(lambda x: x[0], pairs))
         transcriptions =list(map(lambda x: x[1], pairs))
         filenames =list(map(lambda x: x[2], pairs))
-        self._write_split_tsv(destination= os.path.join(self.args.asr_dest_folder, self.args.split_file),
+        self.write_split_tsv(destination= os.path.join(self.asr_dest_folder, self.split_file),
                               paths=paths,
                               transcriptions=transcriptions )
-        self._write_filename_tsv(destination= os.path.join(self.args.asr_dest_folder, self.args.split_file2),
+        self.write_filename_tsv(destination= os.path.join(self.asr_dest_folder, self.split_file2),
                                  paths=paths,
                                  transcriptions=transcriptions,
                                  filenames=filenames)
