@@ -27,6 +27,7 @@ pip install evaluate
 pip install jaconv
 pip install sacrebleu[ja]
 pip install fugashi
+pip install WeTextProcessing
 sudo apt-get install -y sox 
 pip install sox 
 sudo apt update 
