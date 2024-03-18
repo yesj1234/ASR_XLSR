@@ -21,7 +21,7 @@ from transformers import (
 import evaluate
 import jaconv
 from fugashi import Tagger
-from tn.chinese.normalizer import Normalization
+from tn.chinese.normalizer import Normalizer
 
 logger = logging.getLogger(__name__)
  # Setup logging
@@ -138,7 +138,7 @@ def main(args):
         references = list(map(normalize_japanese, references))
     
     if args.lang == "zh":
-        chinese_normalizer = Normalization()
+        chinese_normalizer = Normalizer()
         def normalize_chinese(text):
             text = chinese_normalizer.normalize(text)
             text = text.strip()
