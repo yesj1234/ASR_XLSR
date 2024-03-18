@@ -12,7 +12,7 @@ class DataSplitter:
         self.jsons: str = args.jsons 
         self.root_path: str = args.root_path 
         self.split_file: str = args.split_file 
-        self.split_file: str = args.split_file2 
+        self.split_file2: str = args.split_file2 
         
         self.logger = logging.getLogger("splitting_logger")
         self.logger.setLevel(logging.INFO)
